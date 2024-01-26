@@ -5,8 +5,8 @@ FROM go_builder as builder
 COPY . /app
 WORKDIR /app
 RUN ["go", "mod", "download"]
-RUN ["go", "build", "-o", "./bin/import-meta-env", "cmd/import-meta-env/main.go"]
-RUN ["go", "build", "-o", "./bin/server", "cmd/server/server.go"]
+RUN ["go", "build", "-o", "/app/bin/import-meta-env", "/app/cmd/import-meta-env/main.go"]
+RUN ["go", "build", "-o", "/app/bin/server", "/app/cmd/server/server.go"]
 
 FROM nginx:latest
 # FROM caddy:latest
