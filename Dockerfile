@@ -1,10 +1,11 @@
-# FROM golang:alpine3.19 as go_builder
+FROM golang:alpine3.19 as go_builder
 
-# FROM go_builder as backend
-# RUN ["git", "clone", "https://github.com/ling734/hoppscotch-backend-go.git", "/app"]
-# WORKDIR /app
-# RUN ["go", "mod", "download"]
-# RUN ["go", "build", "-o", "./bin/server", "./server.go"]
+FROM go_builder as builder
+RUN ["git", "clone", "https://github.com/ling734/hoppscotch-backend-go.git", "/app"]
+WORKDIR /app
+RUN ["go", "mod", "download"]
+RUN ["go", "build", "-o", "./bin/import-meta-env", "cmd/import-meta-env/main.go"]
+RUN ["go", "build", "-o", "./bin/server", "cmd/server/server.go"]
 
 FROM nginx:latest
 # FROM caddy:latest
@@ -12,8 +13,8 @@ WORKDIR /app
 COPY template ./template/
 COPY nginx.conf /etc/nginx/
 # COPY aio.Caddyfile /etc/caddy/Caddyfile
-COPY --chmod=755 import-meta-env .
-COPY --chmod=755 server .
+COPY --from=builder --chmod=755 /app/bin/server .
+COPY --from=builder --chmod=755 /app/bin/import-meta-env .
 COPY --chmod=755 healthcheck.sh .
 
 COPY --from=hoppscotch/hoppscotch:latest /site /site
