@@ -1,7 +1,8 @@
 FROM golang:alpine3.19 as go_builder
 
 FROM go_builder as builder
-RUN ["git", "clone", "https://github.com/ling734/hoppscotch-backend-go.git", "/app"]
+# RUN ["git", "clone", "https://github.com/ling734/hoppscotch-backend-go.git", "/app"]
+COPY . /app
 WORKDIR /app
 RUN ["go", "mod", "download"]
 RUN ["go", "build", "-o", "./bin/import-meta-env", "cmd/import-meta-env/main.go"]
