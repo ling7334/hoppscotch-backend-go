@@ -6,7 +6,7 @@ COPY . /app
 WORKDIR /app
 RUN ["go", "mod", "download"]
 RUN ["go", "build", "-o", "/app/bin/import-meta-env", "/app/cmd/import-meta-env/main.go"]
-RUN ["go", "build", "-o", "/app/bin/server", "/app/cmd/server/server.go"]
+RUN ["go", "build", "-o", "/app/bin/server", "/app/cmd/server/main.go"]
 
 FROM nginx:latest
 # FROM caddy:latest
