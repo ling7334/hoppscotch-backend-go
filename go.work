@@ -1,0 +1,17 @@
+go 1.21.5
+
+use (
+	./cmd/dumpper
+	./cmd/import-meta-env
+	./cmd/server
+
+	./pkg/exception
+	./pkg/model
+	./pkg/models
+	./pkg/mail
+	./pkg/middleware
+
+	./internal/rest
+	./internal/graph
+	./internal/graph/dto
+)
