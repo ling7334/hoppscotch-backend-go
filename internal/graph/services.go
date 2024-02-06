@@ -258,3 +258,68 @@ func updateTeamRequestOrder(db *gorm.DB, req *model.TeamRequest, destReq *model.
 		NextRequest: destReq,
 	}, nil
 }
+
+func UserRequestToDTO(req model.UserRequest) dto.UserRequestExportJSON {
+	return dto.UserRequestExportJSON{
+		ID:               req.ID,
+		Name:             req.Title,
+		V:                req.Request.V,
+		Auth:             req.Request.Auth,
+		Body:             req.Request.Body,
+		Method:           req.Request.Method,
+		Params:           req.Request.Params,
+		Headers:          req.Request.Headers,
+		Endpoint:         req.Request.Endpoint,
+		TestScript:       req.Request.TestScript,
+		PreRequestScript: req.Request.PreRequestScript,
+	}
+}
+
+func UserCollectionToDTO(collection model.UserCollection) dto.UserCollectionExportJSON {
+	sub := []dto.UserCollectionExportJSON{}
+	for _, c := range collection.Children {
+		sub = append(sub, UserCollectionToDTO(c))
+	}
+	reqs := []dto.UserRequestExportJSON{}
+	for _, r := range collection.Requests {
+		reqs = append(reqs, UserRequestToDTO(r))
+	}
+	return dto.UserCollectionExportJSON{
+		ID:       collection.ID,
+		Name:     collection.Title,
+		Data:     collection.Data,
+		Folders:  sub,
+		Requests: reqs,
+	}
+}
+
+func TeamRequestToDTO(req model.TeamRequest) dto.TeamRequestExportJSON {
+	return dto.TeamRequestExportJSON{
+		Name:       req.Title,
+		V:          req.Request.V,
+		Auth:       req.Request.Auth,
+		Body:       req.Request.Body,
+		Method:     req.Request.Method,
+		Params:     req.Request.Params,
+		Headers:    req.Request.Headers,
+		Endpoint:   req.Request.Endpoint,
+		TestScript: req.Request.TestScript,
+	}
+}
+
+func TeamCollectionToDTO(collection model.TeamCollection) dto.TeamCollectionExportJSON {
+	sub := []dto.TeamCollectionExportJSON{}
+	for _, c := range collection.Children {
+		sub = append(sub, TeamCollectionToDTO(c))
+	}
+	reqs := []dto.TeamRequestExportJSON{}
+	for _, r := range collection.Requests {
+		reqs = append(reqs, TeamRequestToDTO(r))
+	}
+	return dto.TeamCollectionExportJSON{
+		Name:     collection.Title,
+		Data:     collection.Data,
+		Folders:  sub,
+		Requests: reqs,
+	}
+}

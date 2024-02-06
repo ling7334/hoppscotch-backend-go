@@ -7,6 +7,7 @@ package graph
 import (
 	"context"
 	"dto"
+	"encoding/json"
 	ex "exception"
 	"fmt"
 	"mail"
@@ -587,12 +588,16 @@ func (r *mutationResolver) CreateRequestInCollection(ctx context.Context, collec
 	if err := r.DB.First(coll, "id=?", collectionID).Error; err != nil {
 		return nil, err
 	}
+	detail := model.ReqDetail{}
+	if err := json.Unmarshal([]byte(data.Request), &detail); err != nil {
+		return nil, err
+	}
 	req := &model.TeamRequest{
 		ID:           cuid.New(),
 		CollectionID: coll.ID,
 		TeamID:       coll.TeamID,
 		Title:        data.Title,
-		Request:      data.Request,
+		Request:      detail,
 		OrderIndex:   getTeamMaxOrderIndex(r.DB, &model.TeamRequest{}, &coll.TeamID, &coll.ID),
 	}
 	if err := r.DB.Create(req).Error; err != nil {
@@ -615,7 +620,11 @@ func (r *mutationResolver) UpdateRequest(ctx context.Context, requestID string, 
 		req.Title = *data.Title
 	}
 	if data.Request != nil {
-		req.Request = *data.Request
+		detail := model.ReqDetail{}
+		if err := json.Unmarshal([]byte(*data.Request), &detail); err != nil {
+			return nil, err
+		}
+		req.Request = detail
 	}
 	if err := r.DB.Save(req).Error; err != nil {
 		return nil, err
@@ -947,13 +956,17 @@ func (r *mutationResolver) CreateRESTUserRequest(ctx context.Context, collection
 		return nil, ex.ErrBugAuthNoUserCtx
 	}
 	latest := getUserMaxOrderIndex(r.DB, &model.UserRequest{}, user.UID, &collectionID)
+	detail := model.ReqDetail{}
+	if err := json.Unmarshal([]byte(request), &detail); err != nil {
+		return nil, err
+	}
 	req := &model.UserRequest{
 		ID:           cuid.New(),
 		CollectionID: collectionID,
 		UserUID:      user.UID,
 		Type:         model.REST,
 		Title:        title,
-		Request:      request,
+		Request:      detail,
 		OrderIndex:   latest + 1,
 	}
 	if err := r.DB.Create(req).Error; err != nil {
@@ -973,13 +986,17 @@ func (r *mutationResolver) CreateGQLUserRequest(ctx context.Context, collectionI
 		return nil, ex.ErrBugAuthNoUserCtx
 	}
 	latest := getUserMaxOrderIndex(r.DB, &model.UserRequest{}, user.UID, &collectionID)
+	detail := model.ReqDetail{}
+	if err := json.Unmarshal([]byte(request), &detail); err != nil {
+		return nil, err
+	}
 	req := &model.UserRequest{
 		ID:           cuid.New(),
 		CollectionID: collectionID,
 		UserUID:      user.UID,
 		Type:         model.GQL,
 		Title:        title,
-		Request:      request,
+		Request:      detail,
 		OrderIndex:   latest + 1,
 	}
 	if err := r.DB.Create(req).Error; err != nil {
@@ -1006,7 +1023,11 @@ func (r *mutationResolver) UpdateRESTUserRequest(ctx context.Context, id string,
 		req.Title = *title
 	}
 	if request != nil {
-		req.Request = *request
+		detail := model.ReqDetail{}
+		if err := json.Unmarshal([]byte(*request), &detail); err != nil {
+			return nil, err
+		}
+		req.Request = detail
 	}
 	if err := r.DB.Save(req).Error; err != nil {
 		return nil, err
@@ -1029,7 +1050,11 @@ func (r *mutationResolver) UpdateGQLUserRequest(ctx context.Context, id string, 
 		req.Title = *title
 	}
 	if request != nil {
-		req.Request = *request
+		detail := model.ReqDetail{}
+		if err := json.Unmarshal([]byte(*request), &detail); err != nil {
+			return nil, err
+		}
+		req.Request = detail
 	}
 	if err := r.DB.Save(req).Error; err != nil {
 		return nil, err
@@ -1376,7 +1401,17 @@ func (r *queryResolver) TeamInvitation(ctx context.Context, inviteID string) (i 
 }
 
 func (r *queryResolver) ExportCollectionsToJSON(ctx context.Context, teamID string) (string, error) {
-	panic(fmt.Errorf("not implemented: ExportCollectionsToJSON - exportCollectionsToJSON"))
+	// panic(fmt.Errorf("not implemented: ExportCollectionsToJSON - exportCollectionsToJSON"))
+	c := []model.TeamCollection{}
+	if err := r.DB.Preload("Team").Preload("Children").Preload("Requests").Preload("Children.Requests").Find(&c, "\"teamID\" = ? AND \"parentID\" IS NULL", teamID).Error; err != nil {
+		return "", err
+	}
+	res := []dto.TeamCollectionExportJSON{}
+	for _, coll := range c {
+		res = append(res, TeamCollectionToDTO(coll))
+	}
+	result, err := json.Marshal(res)
+	return string(result), err
 }
 
 func (r *queryResolver) RootCollectionsOfTeam(ctx context.Context, cursor *string, take *int, teamID string) (c []*model.TeamCollection, err error) {
@@ -1510,7 +1545,28 @@ func (r *queryResolver) UserCollection(ctx context.Context, userCollectionID str
 }
 
 func (r *queryResolver) ExportUserCollectionsToJSON(ctx context.Context, collectionID *string, collectionType model.ReqType) (*dto.UserCollectionExportJSONData, error) {
-	panic(fmt.Errorf("not implemented: ExportUserCollectionsToJSON - exportUserCollectionsToJSON"))
+	// panic(fmt.Errorf("not implemented: ExportUserCollectionsToJSON - exportUserCollectionsToJSON"))
+	user, ok := ctx.Value(mw.ContextKey("operator")).(*model.User)
+	if !ok {
+		return nil, ex.ErrBugAuthNoUserCtx
+	}
+	c := []model.UserCollection{}
+	if err := r.DB.Preload("Team").Preload("Children").Preload("Requests").Preload("Children.Requests").Find(&c, "\"userUid\" = ? AND \"parentID\" IS NULL", user.UID).Error; err != nil {
+		return nil, err
+	}
+	res := []dto.UserCollectionExportJSON{}
+	for _, coll := range c {
+		res = append(res, UserCollectionToDTO(coll))
+	}
+	result, err := json.Marshal(res)
+	if err != nil {
+		return nil, err
+	}
+	ret := &dto.UserCollectionExportJSONData{
+		ExportedCollection: string(result),
+		CollectionType:     collectionType,
+	}
+	return ret, nil
 }
 
 func (r *subscriptionResolver) UserUpdated(ctx context.Context) (<-chan *model.User, error) {

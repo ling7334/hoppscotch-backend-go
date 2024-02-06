@@ -9,6 +9,75 @@ import (
 	"strconv"
 	"time"
 )
+type TeamRequestExportJSON struct {
+	V    string `json:"v"`
+	Auth struct {
+		AuthType   string `json:"authType"`
+		AuthActive bool   `json:"authActive"`
+	} `json:"auth"`
+	Body struct {
+		Body        string `json:"body"`
+		ContentType string `json:"contentType"`
+	} `json:"body"`
+	Name   string `json:"name"`
+	Method string `json:"method"`
+	Params []struct {
+		Key    string `json:"key"`
+		Value  string `json:"value"`
+		Active bool   `json:"active"`
+	} `json:"params"`
+	Headers []struct {
+		Key    string `json:"key"`
+		Value  string `json:"value"`
+		Active bool   `json:"active"`
+	} `json:"headers"`
+	Endpoint         string `json:"endpoint"`
+	TestScript       string `json:"testScript"`
+	PreRequestScript string `json:"preRequestScript"`
+}
+
+type TeamCollectionExportJSON struct {
+	Name string `json:"name"`
+	Folders []TeamCollectionExportJSON  `json:"folders"`
+	Requests []TeamRequestExportJSON  `json:"requests"`
+	Data *string `json:"data"`
+}
+
+type UserRequestExportJSON struct {
+	ID string `json:"id"`
+	V    string `json:"v"`
+	Auth struct {
+		AuthType   string `json:"authType"`
+		AuthActive bool   `json:"authActive"`
+	} `json:"auth"`
+	Body struct {
+		Body        string `json:"body"`
+		ContentType string `json:"contentType"`
+	} `json:"body"`
+	Name   string `json:"name"`
+	Method string `json:"method"`
+	Params []struct {
+		Key    string `json:"key"`
+		Value  string `json:"value"`
+		Active bool   `json:"active"`
+	} `json:"params"`
+	Headers []struct {
+		Key    string `json:"key"`
+		Value  string `json:"value"`
+		Active bool   `json:"active"`
+	} `json:"headers"`
+	Endpoint         string `json:"endpoint"`
+	TestScript       string `json:"testScript"`
+	PreRequestScript string `json:"preRequestScript"`
+}
+
+type UserCollectionExportJSON struct {
+	ID string `json:"id"`
+	Name string `json:"name"`
+	Folders []UserCollectionExportJSON  `json:"folders"`
+	Requests []UserRequestExportJSON  `json:"requests"`
+	Data *string `json:"data"`
+}
 
 type Admin struct {
 	// UID of the user
