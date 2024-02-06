@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 
 	"gorm.io/gorm"
@@ -54,24 +55,48 @@ func (tmr TeamMemberRole) Value() (driver.Value, error) {
 	return string(tmr), nil
 }
 
-// JSONB Interface for JSONB Field
-type JSONB string
+type ReqDetail struct {
+	V    string `json:"v"`
+	Auth struct {
+		AuthType   string `json:"authType"`
+		AuthActive bool   `json:"authActive"`
+	} `json:"auth"`
+	Body struct {
+		Body        string `json:"body"`
+		ContentType string `json:"contentType"`
+	} `json:"body"`
+	Name   string `json:"name"`
+	Method string `json:"method"`
+	Params []struct {
+		Key    string `json:"key"`
+		Value  string `json:"value"`
+		Active bool   `json:"active"`
+	} `json:"params"`
+	Headers []struct {
+		Key    string `json:"key"`
+		Value  string `json:"value"`
+		Active bool   `json:"active"`
+	} `json:"headers"`
+	Endpoint         string `json:"endpoint"`
+	TestScript       string `json:"testScript"`
+	PreRequestScript string `json:"preRequestScript"`
+}
 
 // Value Marshal
-func (a JSONB) Value() string {
-	// return json.Marshal(a)
-	return string(a)
+func (a ReqDetail) Value() ([]byte, error) {
+	return json.Marshal(a)
+	// return string(a)
 }
 
 // Scan Unmarshal
-func (a *JSONB) Scan(value interface{}) error {
+func (a *ReqDetail) Scan(value interface{}) error {
 	b, ok := value.([]byte)
 	if !ok {
 		return errors.New("type assertion to []byte failed")
 	}
-	*a = JSONB(b)
-	// return json.Unmarshal(b, &a)
-	return nil
+	// *a = ReqDetail(b)
+	// return nil
+	return json.Unmarshal(b, &a)
 }
 
 // Ownable table has field which link to user

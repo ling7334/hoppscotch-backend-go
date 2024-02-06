@@ -17,7 +17,7 @@ type UserRequest struct {
 	CollectionID string     	`gorm:"column:collectionID;type:text;not null" json:"collectionID"`
 	UserUID      string     	`gorm:"column:userUid;type:text;not null" json:"userUid"`
 	Title        string     	`gorm:"column:title;type:text;not null" json:"title"`
-	Request      string      	`gorm:"column:request;type:jsonb;not null" json:"request"`
+	Request      ReqDetail      `gorm:"column:request;type:jsonb;not null" json:"request"`
 	Type         ReqType    	`gorm:"column:type;type:req_type;not null" json:"type"`
 	OrderIndex   int32      	`gorm:"column:orderIndex;type:integer;not null" json:"orderIndex"`
 	CreatedOn    time.Time  	`gorm:"column:createdOn;type:timestamp(3) without time zone;not null;default:CURRENT_TIMESTAMP" json:"createdOn"`
