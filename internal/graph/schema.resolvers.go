@@ -141,9 +141,9 @@ func (r *mutationResolver) CreateTeamByAdmin(ctx context.Context, userUID string
 		Role:    model.OWNER,
 	}
 	team := &model.Team{
-		ID:      teamID,
-		Name:    name,
-		Members: []model.TeamMember{*member},
+		ID:          teamID,
+		Name:        name,
+		Teammembers: []model.TeamMember{*member},
 	}
 	if err := r.DB.Create(team).Error; err != nil {
 		return nil, err
@@ -248,7 +248,7 @@ func (r *mutationResolver) CreateTeam(ctx context.Context, name string) (*model.
 	if err != nil {
 		return nil, err
 	}
-	TeamMemberAddedSub.Publish(&team.Members[0])
+	TeamMemberAddedSub.Publish(&team.Teammembers[0])
 	return team, nil
 }
 

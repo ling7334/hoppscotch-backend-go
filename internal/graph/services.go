@@ -17,7 +17,7 @@ func createTeam(db *gorm.DB, name, creator string) (*model.Team, error) {
 	if err != nil {
 		return nil, err
 	}
-	team := &model.Team{ID: teamID, Name: name, Members: []model.TeamMember{
+	team := &model.Team{ID: teamID, Name: name, Teammembers: []model.TeamMember{
 		{ID: cuid.New(), TeamID: teamID, UserUID: creator, Role: model.OWNER, User: user},
 	}}
 	err = db.Create(team).Error

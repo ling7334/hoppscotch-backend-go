@@ -9,11 +9,11 @@ const TableNameTeam = "Team"
 type Team struct {
 	ID           string            `gorm:"column:id;type:text;primaryKey" json:"id"`
 	Name         string            `gorm:"column:name;type:text;not null" json:"name"`
-	Collections  []TeamCollection  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"collection"`
-	Environments []TeamEnvironment `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"environment"`
-	Invitations  []TeamInvitation  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"invitation"`
-	Members      []TeamMember      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"member"`
-	Requests     []TeamRequest     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"request"`
+	Collections  []TeamCollection  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"collections"`
+	Environments []TeamEnvironment `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"environments"`
+	Invitations  []TeamInvitation  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"invitations"`
+	Teammembers  []TeamMember      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"teamMembers"`
+	Requests     []TeamRequest     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"requests"`
 }
 
 // TableName Team's table name
