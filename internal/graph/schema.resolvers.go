@@ -14,6 +14,7 @@ import (
 	mw "middleware"
 	"model"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/google/uuid"
@@ -1331,7 +1332,14 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	if !ok {
 		return nil, ex.ErrBugAuthNoUserCtx
 	}
-	err := GetPreloadedDB(r.DB, ctx).First(user, "uid=?", user.UID).Error
+
+	val := reflect.ValueOf(user).Elem()
+	fields := []string{}
+	for i := 0; i < val.NumField(); i++ {
+		fields = append(fields, val.Type().Field(i).Name)
+	}
+
+	err := GetPreloadedDB(r.DB, ctx, fields...).First(user, "uid=?", user.UID).Error
 	return user, err
 }
 
@@ -2099,7 +2107,7 @@ func (r *teamResolver) TeamEnvironments(ctx context.Context, obj *model.Team) (e
 
 func (r *userResolver) GlobalEnvironments(ctx context.Context, obj *model.User) (e *model.UserEnvironment, err error) {
 	// panic(fmt.Errorf("not implemented: GlobalEnvironments - globalEnvironments"))
-	err = GetPreloadedDB(r.DB, ctx).First(&e, `"userUid"=? AND isGlobal`, obj.UID).Error
+	err = GetPreloadedDB(r.DB, ctx).First(&e, `"userUid"=? AND "isGlobal" IS True`, obj.UID).Error
 	return
 }
 

@@ -9,9 +9,15 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetPreloadedDB(db *gorm.DB, ctx context.Context) *gorm.DB {
-	for _, c := range GetPreloads(ctx) {
-		db = db.Preload(c)
+func GetPreloadedDB(db *gorm.DB, ctx context.Context, args ...string) *gorm.DB {
+	pre := GetPreloads(ctx)
+	if len(args) == 0 {
+		args = pre
+	}
+	for _, c := range intersection(pre, args) {
+		if contains(args, c) || len(args) == 0 {
+			db = db.Preload(c)
+		}
 	}
 	return db
 }
