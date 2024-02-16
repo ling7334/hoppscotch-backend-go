@@ -1377,7 +1377,7 @@ func (r *queryResolver) MyTeams(ctx context.Context, cursor *string) (t []*model
 		return nil, ex.ErrBugAuthNoUserCtx
 	}
 	member := &[]*model.TeamMember{}
-	if err := r.DB.Find(member, "userUid = ?", user.UID).Error; err != nil {
+	if err := r.DB.Find(member, `"userUid" = ?`, user.UID).Error; err != nil {
 		return nil, err
 	}
 	team_ids := []string{}
