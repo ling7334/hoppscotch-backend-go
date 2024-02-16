@@ -3,6 +3,7 @@ package graph
 import (
 	"fmt"
 	"io"
+	"strconv"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -11,7 +12,7 @@ import (
 // MarshalDateTimeScalar convert a time.Time to DateTime Scalar
 func MarshalDateTimeScalar(t time.Time) graphql.Marshaler {
 	return graphql.WriterFunc(func(w io.Writer) {
-		w.Write([]byte(t.Format(time.RFC3339)))
+		w.Write([]byte(strconv.Quote(t.Format(time.RFC3339))))
 	})
 }
 
