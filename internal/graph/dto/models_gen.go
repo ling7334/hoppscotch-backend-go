@@ -10,7 +10,7 @@ import (
 	"time"
 )
 type TeamRequestExportJSON struct {
-	V    string `json:"v"`
+	V    int `json:"v"`
 	Auth struct {
 		AuthType   string `json:"authType"`
 		AuthActive bool   `json:"authActive"`
@@ -45,7 +45,7 @@ type TeamCollectionExportJSON struct {
 
 type UserRequestExportJSON struct {
 	ID string `json:"id"`
-	V    string `json:"v"`
+	V    int `json:"v"`
 	Auth struct {
 		AuthType   string `json:"authType"`
 		AuthActive bool   `json:"authActive"`

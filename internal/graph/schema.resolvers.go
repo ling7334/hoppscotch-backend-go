@@ -1480,7 +1480,7 @@ func (r *queryResolver) MyShortcodes(ctx context.Context, cursor *string, take *
 	if cursor != nil {
 		base = base.Where("id > ?", *cursor)
 	}
-	err = base.Limit(getLimit(take)).Find(&s, "creatorUid = ?", user.UID).Error
+	err = base.Limit(getLimit(take)).Find(&s, `"creatorUid" = ?`, user.UID).Error
 	return
 }
 
@@ -1559,7 +1559,7 @@ func (r *queryResolver) ExportUserCollectionsToJSON(ctx context.Context, collect
 		return nil, ex.ErrBugAuthNoUserCtx
 	}
 	c := []model.UserCollection{}
-	if err := r.DB.Preload("Team").Preload("Children").Preload("Requests").Preload("Children.Requests").Find(&c, "\"userUid\" = ? AND \"parentID\" IS NULL", user.UID).Error; err != nil {
+	if err := r.DB.Preload("Children").Preload("Requests").Preload("Children.Requests").Find(&c, "\"userUid\" = ? AND \"parentID\" IS NULL", user.UID).Error; err != nil {
 		return nil, err
 	}
 	res := []dto.UserCollectionExportJSON{}
