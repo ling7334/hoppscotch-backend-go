@@ -1411,10 +1411,11 @@ func (r *queryResolver) Team(ctx context.Context, teamID string) (*model.Team, e
 	return team, nil
 }
 
-func (r *queryResolver) TeamInvitation(ctx context.Context, inviteID string) (i *model.TeamInvitation, err error) {
+func (r *queryResolver) TeamInvitation(ctx context.Context, inviteID string) (*model.TeamInvitation, error) {
 	// panic(fmt.Errorf("not implemented: TeamInvitation - teamInvitation"))
-	err = GetPreloadedDB(r.DB, ctx).Find(&i, "id = ?", inviteID).Error
-	return
+	i := &model.TeamInvitation{}
+	err := GetPreloadedDB(r.DB, ctx).Find(&i, "id = ?", inviteID).Error
+	return i, err
 }
 
 func (r *queryResolver) ExportCollectionsToJSON(ctx context.Context, teamID string) (string, error) {
@@ -1441,10 +1442,11 @@ func (r *queryResolver) RootCollectionsOfTeam(ctx context.Context, cursor *strin
 	return
 }
 
-func (r *queryResolver) Collection(ctx context.Context, collectionID string) (c *model.TeamCollection, err error) {
+func (r *queryResolver) Collection(ctx context.Context, collectionID string) (*model.TeamCollection, error) {
 	// panic(fmt.Errorf("not implemented: Collection - collection"))
-	err = GetPreloadedDB(r.DB, ctx).First(c, "id = ?", collectionID).Error
-	return
+	coll := &model.TeamCollection{}
+	err := GetPreloadedDB(r.DB, ctx).First(coll, "id = ?", collectionID).Error
+	return coll, err
 }
 
 func (r *queryResolver) SearchForRequest(ctx context.Context, cursor *string, take *int, teamID string, searchTerm string) (req []*model.TeamRequest, err error) {
@@ -1457,10 +1459,11 @@ func (r *queryResolver) SearchForRequest(ctx context.Context, cursor *string, ta
 	return
 }
 
-func (r *queryResolver) Request(ctx context.Context, requestID string) (req *model.TeamRequest, err error) {
+func (r *queryResolver) Request(ctx context.Context, requestID string) (*model.TeamRequest, error) {
 	// panic(fmt.Errorf("not implemented: Request - request"))
-	err = GetPreloadedDB(r.DB, ctx).First(req, "id = ?", requestID).Error
-	return
+	req := &model.TeamRequest{}
+	err := GetPreloadedDB(r.DB, ctx).First(req, "id = ?", requestID).Error
+	return req, err
 }
 
 func (r *queryResolver) RequestsInCollection(ctx context.Context, cursor *string, take *int, collectionID string) (req []*model.TeamRequest, err error) {
@@ -1473,10 +1476,11 @@ func (r *queryResolver) RequestsInCollection(ctx context.Context, cursor *string
 	return
 }
 
-func (r *queryResolver) Shortcode(ctx context.Context, code string) (s *model.Shortcode, err error) {
+func (r *queryResolver) Shortcode(ctx context.Context, code string) (*model.Shortcode, error) {
 	// panic(fmt.Errorf("not implemented: Shortcode - shortcode"))
-	err = GetPreloadedDB(r.DB, ctx).First(s, "id = ?", code).Error
-	return
+	s := &model.Shortcode{}
+	err := GetPreloadedDB(r.DB, ctx).First(s, "id = ?", code).Error
+	return s, err
 }
 
 func (r *queryResolver) MyShortcodes(ctx context.Context, cursor *string, take *int) (s []*model.Shortcode, err error) {
@@ -1521,10 +1525,11 @@ func (r *queryResolver) UserGQLRequests(ctx context.Context, cursor *string, tak
 	return
 }
 
-func (r *queryResolver) UserRequest(ctx context.Context, id string) (req *model.UserRequest, err error) {
+func (r *queryResolver) UserRequest(ctx context.Context, id string) (*model.UserRequest, error) {
 	// panic(fmt.Errorf("not implemented: UserRequest - userRequest"))
-	err = GetPreloadedDB(r.DB, ctx).First(req, "id = ?", id).Error
-	return
+	req := &model.UserRequest{}
+	err := GetPreloadedDB(r.DB, ctx).First(req, "id = ?", id).Error
+	return req, err
 }
 
 func (r *queryResolver) RootRESTUserCollections(ctx context.Context, cursor *string, take *int) (c []*model.UserCollection, err error) {
@@ -1555,10 +1560,11 @@ func (r *queryResolver) RootGQLUserCollections(ctx context.Context, cursor *stri
 	return
 }
 
-func (r *queryResolver) UserCollection(ctx context.Context, userCollectionID string) (c *model.UserCollection, err error) {
+func (r *queryResolver) UserCollection(ctx context.Context, userCollectionID string) (*model.UserCollection, error) {
 	// panic(fmt.Errorf("not implemented: UserCollection - userCollection"))
-	err = GetPreloadedDB(r.DB, ctx).First(c, "id = ?", userCollectionID).Error
-	return
+	c := &model.UserCollection{}
+	err := GetPreloadedDB(r.DB, ctx).First(c, "id = ?", userCollectionID).Error
+	return c, err
 }
 
 func (r *queryResolver) ExportUserCollectionsToJSON(ctx context.Context, collectionID *string, collectionType model.ReqType) (*dto.UserCollectionExportJSONData, error) {
@@ -2114,10 +2120,11 @@ func (r *teamResolver) TeamEnvironments(ctx context.Context, obj *model.Team) (e
 	return
 }
 
-func (r *userResolver) GlobalEnvironments(ctx context.Context, obj *model.User) (e *model.UserEnvironment, err error) {
+func (r *userResolver) GlobalEnvironments(ctx context.Context, obj *model.User) (*model.UserEnvironment, error) {
 	// panic(fmt.Errorf("not implemented: GlobalEnvironments - globalEnvironments"))
-	err = GetPreloadedDB(r.DB, ctx).First(&e, `"userUid"=? AND "isGlobal" IS True`, obj.UID).Error
-	return
+	e := &model.UserEnvironment{}
+	err := GetPreloadedDB(r.DB, ctx).First(&e, `"userUid"=? AND "isGlobal" IS True`, obj.UID).Error
+	return e, err
 }
 
 func (r *userResolver) RESTHistory(ctx context.Context, obj *model.User, cursor *string, take *int) (h []*model.UserHistory, err error) {
