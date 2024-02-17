@@ -1574,7 +1574,7 @@ func (r *queryResolver) ExportUserCollectionsToJSON(ctx context.Context, collect
 		return nil, ex.ErrBugAuthNoUserCtx
 	}
 	c := []model.UserCollection{}
-	if err := r.DB.Preload("Children").Preload("Requests").Preload("Children.Requests").Find(&c, "\"userUid\" = ? AND \"parentID\" IS NULL", user.UID).Error; err != nil {
+	if err := r.DB.Preload("Children").Preload("Requests").Preload("Children.Requests").Find(&c, "\"userUid\" = ? AND \"parentID\" IS NULL AND type = ?", user.UID, collectionType).Error; err != nil {
 		return nil, err
 	}
 	res := []dto.UserCollectionExportJSON{}
