@@ -391,7 +391,7 @@ func (r *mutationResolver) CreateTeamEnvironment(ctx context.Context, name strin
 		return nil, err
 	}
 	team := &model.Team{}
-	if err := GetPreloadedDB(r.DB, ctx).First(team, "id=?", team.ID).Error; err != nil {
+	if err := GetPreloadedDB(r.DB, ctx).First(team, "id=?", teamID).Error; err != nil {
 		return nil, err
 	}
 	TeamEnvironmentCreatedSub.Publish(env)
@@ -1396,10 +1396,19 @@ func (r *queryResolver) MyTeams(ctx context.Context, cursor *string) (t []*model
 	return
 }
 
-func (r *queryResolver) Team(ctx context.Context, teamID string) (t *model.Team, err error) {
+func (r *queryResolver) Team(ctx context.Context, teamID string) (*model.Team, error) {
 	// panic(fmt.Errorf("not implemented: Team - team"))
-	err = GetPreloadedDB(r.DB, ctx).First(t, "id = ?", teamID).Error
-	return
+	val := reflect.ValueOf(&model.Team{}).Elem()
+	fields := []string{}
+	for i := 0; i < val.NumField(); i++ {
+		fields = append(fields, val.Type().Field(i).Name)
+	}
+	team := &model.Team{}
+	err := GetPreloadedDB(r.DB, ctx, fields...).First(team, "id = ?", teamID).Error
+	if err != nil {
+		return nil, err
+	}
+	return team, nil
 }
 
 func (r *queryResolver) TeamInvitation(ctx context.Context, inviteID string) (i *model.TeamInvitation, err error) {
@@ -1428,7 +1437,7 @@ func (r *queryResolver) RootCollectionsOfTeam(ctx context.Context, cursor *strin
 	if cursor != nil {
 		base = base.Where("id > ?", *cursor)
 	}
-	err = base.Limit(getLimit(take)).Find(&c, "teamID = ?", teamID).Error
+	err = base.Limit(getLimit(take)).Find(&c, `"teamID" = ?`, teamID).Error
 	return
 }
 
@@ -1460,7 +1469,7 @@ func (r *queryResolver) RequestsInCollection(ctx context.Context, cursor *string
 	if cursor != nil {
 		base = base.Where("id > ?", *cursor)
 	}
-	err = base.Limit(getLimit(take)).Find(&req, "collectionID = ?", collectionID).Error
+	err = base.Limit(getLimit(take)).Find(&req, `"collectionID" = ?`, collectionID).Error
 	return
 }
 
@@ -1490,7 +1499,7 @@ func (r *queryResolver) UserRESTRequests(ctx context.Context, cursor *string, ta
 	if !ok {
 		return nil, ex.ErrBugAuthNoUserCtx
 	}
-	base := GetPreloadedDB(r.DB, ctx).Where("collectionID = ? AND userUid = ? AND type = ?", collectionID, user.UID, model.REST)
+	base := GetPreloadedDB(r.DB, ctx).Where(`"collectionID" = ? AND "userUid" = ? AND type = ?`, collectionID, user.UID, model.REST)
 	if cursor != nil {
 		base = base.Where("id > ?", *cursor)
 	}
@@ -1504,7 +1513,7 @@ func (r *queryResolver) UserGQLRequests(ctx context.Context, cursor *string, tak
 	if !ok {
 		return nil, ex.ErrBugAuthNoUserCtx
 	}
-	base := GetPreloadedDB(r.DB, ctx).Where("collectionID = ? AND userUid = ? AND type = ?", collectionID, user.UID, model.GQL)
+	base := GetPreloadedDB(r.DB, ctx).Where(`"collectionID" = ? AND "userUid" = ? AND type = ?`, collectionID, user.UID, model.GQL)
 	if cursor != nil {
 		base = base.Where("id > ?", *cursor)
 	}
@@ -1524,7 +1533,7 @@ func (r *queryResolver) RootRESTUserCollections(ctx context.Context, cursor *str
 	if !ok {
 		return nil, ex.ErrBugAuthNoUserCtx
 	}
-	base := GetPreloadedDB(r.DB, ctx).Where("collectionID IS NULL AND userUid = ? AND type = ?", user.UID, model.REST)
+	base := GetPreloadedDB(r.DB, ctx).Where(`"collectionID" IS NULL AND "userUid" = ? AND type = ?`, user.UID, model.REST)
 	if cursor != nil {
 		base = base.Where("id > ?", *cursor)
 	}
@@ -1538,7 +1547,7 @@ func (r *queryResolver) RootGQLUserCollections(ctx context.Context, cursor *stri
 	if !ok {
 		return nil, ex.ErrBugAuthNoUserCtx
 	}
-	base := GetPreloadedDB(r.DB, ctx).Where("collectionID IS NULL AND userUid = ? AND type = ?", user.UID, model.GQL)
+	base := GetPreloadedDB(r.DB, ctx).Where(`"collectionID" IS NULL AND "userUid" = ? AND type = ?`, user.UID, model.GQL)
 	if cursor != nil {
 		base = base.Where("id > ?", *cursor)
 	}
