@@ -7,6 +7,7 @@ import (
 	"context"
 	"dto"
 	"errors"
+	"encoding/json"
 	"fmt"
 	"io"
 	"model"
@@ -22858,7 +22859,8 @@ func (ec *executionContext) _TeamRequest_request(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Request, nil
+		res, err := json.Marshal(obj.Request)
+		return string(res), err
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25290,7 +25292,8 @@ func (ec *executionContext) _UserRequest_request(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Request, nil
+		res, err := json.Marshal(obj.Request)
+		return string(res), err
 	})
 	if err != nil {
 		ec.Error(ctx, err)
