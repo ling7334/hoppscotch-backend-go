@@ -8,9 +8,9 @@ With the aim of reduce the image size and resource usage, I've taken up the chal
 
 ## 🛠️ Key Features:
 
-Go Power: Benefit from the speed and efficiency of Go.
-Compatibility: Designed to seamlessly integrate with the Hoppscotch frontend.
-Easy Setup: Simple installation and configuration for a Hoppscotch-like experience.
+- Go Power: Benefit from the speed and efficiency of Go.
+- Compatibility: Designed to seamlessly integrate with the Hoppscotch frontend.
+- Easy Setup: Simple installation and configuration for a Hoppscotch-like experience.
 
 ## 👩‍💻 How to Contribute:
 Excited to contribute or explore further? Dive into the GitHub repository, check out the issues, and feel free to submit pull requests. This project is open to collaboration and welcomes your valuable contributions.
