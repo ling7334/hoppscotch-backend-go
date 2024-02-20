@@ -15,9 +15,7 @@ func GetPreloadedDB(db *gorm.DB, ctx context.Context, args ...string) *gorm.DB {
 		args = pre
 	}
 	for _, c := range intersection(pre, args) {
-		if contains(args, c) || len(args) == 0 {
-			db = db.Preload(c)
-		}
+		db = db.Preload(c)
 	}
 	return db
 }
