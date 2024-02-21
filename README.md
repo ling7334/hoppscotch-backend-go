@@ -1,5 +1,10 @@
 # hoppscotch-backend-go
 
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/ling7334/hoppscotch-backend-go)
+[![GitHub License](https://img.shields.io/github/license/ling7334/hoppscotch-backend-go)](https://github.com/ling7334/hoppscotch-backend-go/blob/master/LICENSE)
+[![Docker Pulls](https://img.shields.io/docker/pulls/ling7334/hoppscotch)](https://hub.docker.com/r/ling7334/hoppscotch)
+
+
 > A Go port of the popular API development tool, Hoppscotch.
 
 ## 🚀 Why 'hoppscotch-backend-go'?
