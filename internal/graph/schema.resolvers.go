@@ -336,10 +336,11 @@ func (r *mutationResolver) CreateTeamInvitation(ctx context.Context, teamID stri
 		tx.Rollback()
 		return nil, err
 	}
-	tx.Commit()
 	if err := GetPreloadedDB(r.DB, ctx).First(invite, "id=?", invite.ID).Error; err != nil {
+		tx.Rollback()
 		return nil, err
 	}
+	tx.Commit()
 	TeamInvitationAddedSub.Publish(invite)
 	return invite, nil
 }
