@@ -295,15 +295,16 @@ func UserCollectionToDTO(collection model.UserCollection) dto.UserCollectionExpo
 
 func TeamRequestToDTO(req model.TeamRequest) dto.TeamRequestExportJSON {
 	return dto.TeamRequestExportJSON{
-		Name:       req.Title,
-		V:          req.Request.V.String(),
-		Auth:       req.Request.Auth,
-		Body:       req.Request.Body,
-		Method:     req.Request.Method,
-		Params:     req.Request.Params,
-		Headers:    req.Request.Headers,
-		Endpoint:   req.Request.Endpoint,
-		TestScript: req.Request.TestScript,
+		Name:             req.Title,
+		V:                req.Request.V.String(),
+		Auth:             req.Request.Auth,
+		Body:             req.Request.Body,
+		Method:           req.Request.Method,
+		Params:           req.Request.Params,
+		Headers:          req.Request.Headers,
+		Endpoint:         req.Request.Endpoint,
+		TestScript:       req.Request.TestScript,
+		PreRequestScript: req.Request.PreRequestScript,
 	}
 }
 

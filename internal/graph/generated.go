@@ -22859,8 +22859,11 @@ func (ec *executionContext) _TeamRequest_request(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		res, err := json.Marshal(obj.Request)
-		return string(res), err
+		buffer := &bytes.Buffer{}
+		encoder := json.NewEncoder(buffer)
+		encoder.SetEscapeHTML(false)
+		err = encoder.Encode(obj.Request)
+		return buffer.String(), err
 	})
 	if err != nil {
 		ec.Error(ctx, err)
