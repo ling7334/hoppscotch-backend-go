@@ -285,11 +285,10 @@ func UserCollectionToDTO(collection model.UserCollection) dto.UserCollectionExpo
 		reqs = append(reqs, UserRequestToDTO(r))
 	}
 	return dto.UserCollectionExportJSON{
-		ID:       collection.ID,
-		Name:     collection.Title,
-		Data:     collection.Data,
-		Folders:  sub,
-		Requests: reqs,
+		ID:      collection.ID,
+		Name:    collection.Title,
+		Data:    collection.Data,
+		Folders: sub,
 	}
 }
 
@@ -317,9 +316,8 @@ func TeamCollectionToDTO(collection model.TeamCollection) dto.TeamCollectionExpo
 		reqs = append(reqs, TeamRequestToDTO(r))
 	}
 	return dto.TeamCollectionExportJSON{
-		Name:     collection.Title,
-		Data:     collection.Data,
-		Folders:  sub,
-		Requests: reqs,
+		Name:    collection.Title,
+		Data:    collection.Data,
+		Folders: sub,
 	}
 }
