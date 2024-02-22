@@ -56,7 +56,7 @@ func (tmr TeamMemberRole) Value() (driver.Value, error) {
 }
 
 type ReqDetail struct {
-	V    int `json:"v"`
+	V    json.Number `json:"v"`
 	Auth struct {
 		AuthType   string `json:"authType"`
 		AuthActive bool   `json:"authActive"`
