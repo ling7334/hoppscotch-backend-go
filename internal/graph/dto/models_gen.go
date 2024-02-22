@@ -16,8 +16,8 @@ type TeamRequestExportJSON struct {
 		AuthActive bool   `json:"authActive"`
 	} `json:"auth"`
 	Body struct {
-		Body        string `json:"body"`
-		ContentType string `json:"contentType"`
+		Body        *string `json:"body"`
+		ContentType *string `json:"contentType"`
 	} `json:"body"`
 	Name   string `json:"name"`
 	Method string `json:"method"`
@@ -51,8 +51,8 @@ type UserRequestExportJSON struct {
 		AuthActive bool   `json:"authActive"`
 	} `json:"auth"`
 	Body struct {
-		Body        string `json:"body"`
-		ContentType string `json:"contentType"`
+		Body        *string `json:"body"`
+		ContentType *string `json:"contentType"`
 	} `json:"body"`
 	Name   string `json:"name"`
 	Method string `json:"method"`
