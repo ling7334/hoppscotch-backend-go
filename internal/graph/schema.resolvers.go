@@ -1437,7 +1437,7 @@ func (r *queryResolver) RootCollectionsOfTeam(ctx context.Context, cursor *strin
 	// panic(fmt.Errorf("not implemented: RootCollectionsOfTeam - rootCollectionsOfTeam"))
 	base := GetPreloadedDB(r.DB, ctx)
 	if cursor != nil {
-		base = base.Where("id > ?", *cursor)
+		base = base.Where(`id > ? AND "parentID" IS NULL`, *cursor)
 	}
 	err = base.Limit(getLimit(take)).Find(&c, `"teamID" = ?`, teamID).Error
 	return
