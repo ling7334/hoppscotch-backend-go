@@ -280,16 +280,16 @@ func UserCollectionToDTO(collection model.UserCollection) dto.UserCollectionExpo
 	for _, c := range collection.Children {
 		sub = append(sub, UserCollectionToDTO(c))
 	}
-	// reqs := []dto.UserRequestExportJSON{}
-	// for _, r := range collection.Requests {
-	// 	reqs = append(reqs, UserRequestToDTO(r))
-	// }
+	reqs := []dto.UserRequestExportJSON{}
+	for _, r := range collection.Requests {
+		reqs = append(reqs, UserRequestToDTO(r))
+	}
 	return dto.UserCollectionExportJSON{
 		ID:       collection.ID,
 		Name:     collection.Title,
 		Data:     collection.Data,
 		Folders:  sub,
-		Requests: []dto.UserRequestExportJSON{},
+		Requests: reqs,
 	}
 }
 
@@ -312,14 +312,14 @@ func TeamCollectionToDTO(collection model.TeamCollection) dto.TeamCollectionExpo
 	for _, c := range collection.Children {
 		sub = append(sub, TeamCollectionToDTO(c))
 	}
-	// reqs := []dto.TeamRequestExportJSON{}
-	// for _, r := range collection.Requests {
-	// 	reqs = append(reqs, TeamRequestToDTO(r))
-	// }
+	reqs := []dto.TeamRequestExportJSON{}
+	for _, r := range collection.Requests {
+		reqs = append(reqs, TeamRequestToDTO(r))
+	}
 	return dto.TeamCollectionExportJSON{
 		Name:     collection.Title,
 		Data:     collection.Data,
 		Folders:  sub,
-		Requests: []dto.TeamRequestExportJSON{},
+		Requests: reqs,
 	}
 }
