@@ -263,7 +263,7 @@ func UserRequestToDTO(req model.UserRequest) dto.UserRequestExportJSON {
 	return dto.UserRequestExportJSON{
 		ID:               req.ID,
 		Name:             req.Title,
-		V:                req.Request.V,
+		V:                req.Request.V.String(),
 		Auth:             req.Request.Auth,
 		Body:             req.Request.Body,
 		Method:           req.Request.Method,
@@ -296,7 +296,7 @@ func UserCollectionToDTO(collection model.UserCollection) dto.UserCollectionExpo
 func TeamRequestToDTO(req model.TeamRequest) dto.TeamRequestExportJSON {
 	return dto.TeamRequestExportJSON{
 		Name:       req.Title,
-		V:          req.Request.V,
+		V:          req.Request.V.String(),
 		Auth:       req.Request.Auth,
 		Body:       req.Request.Body,
 		Method:     req.Request.Method,
