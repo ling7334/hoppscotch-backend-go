@@ -3,6 +3,7 @@
 package dto
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"model"
@@ -10,7 +11,7 @@ import (
 	"time"
 )
 type TeamRequestExportJSON struct {
-	V    int `json:"v"`
+	V    json.Number `json:"v"`
 	Auth struct {
 		AuthType   string `json:"authType"`
 		AuthActive bool   `json:"authActive"`
@@ -45,7 +46,7 @@ type TeamCollectionExportJSON struct {
 
 type UserRequestExportJSON struct {
 	ID string `json:"id"`
-	V    int `json:"v"`
+	V  json.Number `json:"v"`
 	Auth struct {
 		AuthType   string `json:"authType"`
 		AuthActive bool   `json:"authActive"`
