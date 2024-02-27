@@ -54,7 +54,7 @@ func (c *TeamCollection) Can(db *gorm.DB, uid string, role TeamMemberRole) bool 
 }
 
 func (*TeamCollection) ParentColName() string {
-	return "ParentID"
+	return "parentID"
 }
 
 func (c *TeamCollection) Move(db *gorm.DB, next *string) error {
