@@ -52,19 +52,17 @@ func getUserMaxOrderIndex(db *gorm.DB, model model.Orderable, userUID string, pa
 }
 
 func getTeamMaxOrderIndex(db *gorm.DB, model model.Orderable, teamID *string, parentID *string) int32 {
-	result := &struct {
-		latest int32
-	}{0}
-	base := db.Model(model).Select(`MAX("orderIndex") as latest`)
+	var maxValue int32
+	base := db.Model(model).Select(`MAX("orderIndex")`)
 	if teamID != nil {
 		base = base.Where(`"teamID"=?`, teamID)
 	}
 	if parentID != nil {
-		base.Where(fmt.Sprintf(`"%s" = ?`, model.ParentColName()), *parentID).Find(result)
+		base.Where(fmt.Sprintf(`"%s" = ?`, model.ParentColName()), *parentID).Row().Scan(&maxValue)
 	} else {
-		base.Where(fmt.Sprintf(`"%s" IS NULL`, model.ParentColName())).Find(result)
+		base.Where(fmt.Sprintf(`"%s" IS NULL`, model.ParentColName())).Row().Scan(&maxValue)
 	}
-	return result.latest
+	return maxValue
 }
 
 func moveTeamOrderIndex(db *gorm.DB, model model.Orderable, teamID string, parentID *string, upper, lower *int32, up bool) error {

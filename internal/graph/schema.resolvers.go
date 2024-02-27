@@ -600,7 +600,7 @@ func (r *mutationResolver) CreateRequestInCollection(ctx context.Context, collec
 		TeamID:       coll.TeamID,
 		Title:        data.Title,
 		Request:      detail,
-		OrderIndex:   getTeamMaxOrderIndex(r.DB, &model.TeamRequest{}, &coll.TeamID, &coll.ID),
+		OrderIndex:   getTeamMaxOrderIndex(r.DB, &model.TeamRequest{}, &coll.TeamID, &coll.ID) + 1,
 	}
 	if err := r.DB.Create(req).Error; err != nil {
 		return nil, err
