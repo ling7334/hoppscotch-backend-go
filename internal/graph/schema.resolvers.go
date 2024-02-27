@@ -650,13 +650,13 @@ func (r *mutationResolver) UpdateLookUpRequestOrder(ctx context.Context, collect
 	if err := r.DB.First(req, "id=?", requestID).Error; err != nil {
 		return false, err
 	}
-	var destReq *model.TeamRequest
+	nextReq := &model.TeamRequest{}
 	if nextRequestID != nil {
-		if err := r.DB.First(destReq, "id=?", nextRequestID).Error; err != nil {
+		if err := r.DB.First(nextReq, "id=?", nextRequestID).Error; err != nil {
 			return false, err
 		}
 	}
-	dto, err := updateTeamRequestOrder(r.DB, req, destReq)
+	dto, err := updateTeamRequestOrder(r.DB, req, nextReq)
 	if err != nil {
 		return false, err
 	}

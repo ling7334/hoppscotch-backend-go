@@ -228,34 +228,36 @@ func updateTeamCollectionOrder(db *gorm.DB, coll *model.TeamCollection, destColl
 	}, nil
 }
 
-func updateTeamRequestOrder(db *gorm.DB, req *model.TeamRequest, destReq *model.TeamRequest) (*dto.RequestReorderData, error) {
-	tx := db.Begin()
-	if req.OrderIndex < destReq.OrderIndex {
-		if err := moveTeamOrderIndex(db, destReq, req.TeamID, &req.CollectionID, &req.OrderIndex, &destReq.OrderIndex, true); err != nil {
-			tx.Rollback()
-			return nil, err
+func updateTeamRequestOrder(db *gorm.DB, req *model.TeamRequest, nextReq *model.TeamRequest) (*dto.RequestReorderData, error) {
+	if req.OrderIndex != nextReq.OrderIndex-1 {
+		tx := db.Begin()
+		if req.OrderIndex < nextReq.OrderIndex {
+			if err := moveTeamOrderIndex(tx, nextReq, req.TeamID, &req.CollectionID, &req.OrderIndex, &nextReq.OrderIndex, true); err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			req.OrderIndex = nextReq.OrderIndex - 1
+			if err := tx.Save(req).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		} else {
+			upper := nextReq.OrderIndex - 1
+			if err := moveTeamOrderIndex(tx, nextReq, req.TeamID, &req.CollectionID, &upper, &req.OrderIndex, false); err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			req.OrderIndex = upper + 1
+			if err := tx.Save(req).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
 		}
-		req.OrderIndex = destReq.OrderIndex - 1
-		if err := tx.Save(req).Error; err != nil {
-			tx.Rollback()
-			return nil, err
-		}
-	} else {
-		upper := destReq.OrderIndex - 1
-		if err := moveTeamOrderIndex(db, destReq, req.TeamID, &req.CollectionID, &upper, &req.OrderIndex, false); err != nil {
-			tx.Rollback()
-			return nil, err
-		}
-		req.OrderIndex = upper
-		if err := tx.Save(req).Error; err != nil {
-			tx.Rollback()
-			return nil, err
-		}
+		tx.Commit()
 	}
-	tx.Commit()
 	return &dto.RequestReorderData{
 		Request:     req,
-		NextRequest: destReq,
+		NextRequest: nextReq,
 	}, nil
 }
 
