@@ -39,16 +39,14 @@ func removeTeamMember(db *gorm.DB, teamID, userUID string) (string, error) {
 }
 
 func getUserMaxOrderIndex(db *gorm.DB, model model.Orderable, userUID string, parentID *string) int32 {
-	result := &struct {
-		latest int32
-	}{0}
-	base := db.Model(model).Select(`MAX("orderIndex") as latest`).Where(`"UserUid"=?`, userUID)
+	var maxValue int32
+	base := db.Model(model).Select(`MAX("orderIndex")`).Where(`"UserUid"=?`, userUID)
 	if parentID != nil {
-		base.Where(fmt.Sprintf(`"%s" = ?`, model.ParentColName()), *parentID).Find(result)
+		base.Where(fmt.Sprintf(`"%s" = ?`, model.ParentColName()), *parentID).Row().Scan(&maxValue)
 	} else {
-		base.Where(fmt.Sprintf(`"%s" IS NULL`, model.ParentColName())).Find(result)
+		base.Where(fmt.Sprintf(`"%s" IS NULL`, model.ParentColName())).Row().Scan(&maxValue)
 	}
-	return result.latest
+	return maxValue
 }
 
 func getTeamMaxOrderIndex(db *gorm.DB, model model.Orderable, teamID *string, parentID *string) int32 {
