@@ -1473,7 +1473,7 @@ func (r *queryResolver) RequestsInCollection(ctx context.Context, cursor *string
 	if cursor != nil {
 		base = base.Where("id > ?", *cursor)
 	}
-	err = base.Limit(getLimit(take)).Find(&req, `"collectionID" = ?`, collectionID).Error
+	err = base.Limit(getLimit(take)).Order(`"orderIndex"`).Find(&req, `"collectionID" = ?`, collectionID).Error
 	return
 }
 
