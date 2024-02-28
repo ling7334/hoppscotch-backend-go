@@ -522,9 +522,12 @@ func (r *mutationResolver) RenameCollection(ctx context.Context, collectionID st
 
 func (r *mutationResolver) DeleteCollection(ctx context.Context, collectionID string) (bool, error) {
 	// panic(fmt.Errorf("not implemented: DeleteCollection - deleteCollection"))
-	if err := r.DB.Delete(&model.TeamCollection{}, "id=?", collectionID).Error; err != nil {
+	tx := r.DB.Begin()
+	if err := removeTeamCollection(tx, collectionID); err != nil {
+		tx.Rollback()
 		return false, err
 	}
+	tx.Commit()
 	TeamCollectionRemovedSub.Publish(collectionID)
 	return true, nil
 }

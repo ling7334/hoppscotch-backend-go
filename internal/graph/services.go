@@ -38,6 +38,25 @@ func removeTeamMember(db *gorm.DB, teamID, userUID string) (string, error) {
 	return member[0].ID, nil
 }
 
+func removeTeamCollection(db *gorm.DB, collectionID string) error {
+	colls := []model.TeamCollection{}
+	if err := db.Where(`"parentID"=?`, collectionID).Find(&colls).Error; err != nil {
+		return err
+	}
+	for _, coll := range colls {
+		if err := removeTeamCollection(db, coll.ID); err != nil {
+			return err
+		}
+	}
+	if err := db.Delete(&model.TeamRequest{}, `"collectionID"=?`, collectionID).Error; err != nil {
+		return err
+	}
+	if err := db.Delete(&model.TeamCollection{}, "id=?", collectionID).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func getUserMaxOrderIndex(db *gorm.DB, model model.Orderable, userUID string, parentID *string) int32 {
 	var maxValue int32
 	base := db.Model(model).Select(`MAX("orderIndex")`).Where(`"UserUid"=?`, userUID)
