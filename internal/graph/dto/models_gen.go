@@ -9,28 +9,15 @@ import (
 	"strconv"
 	"time"
 )
+
 type TeamRequestExportJSON struct {
 	V    string `json:"v"`
-	Auth struct {
-		AuthType   string `json:"authType"`
-		AuthActive bool   `json:"authActive"`
-	} `json:"auth"`
-	Body struct {
-		Body        *string `json:"body"`
-		ContentType *string `json:"contentType"`
-	} `json:"body"`
+	Auth model.Auth `json:"auth"`
+	Body model.Body `json:"body"`
 	Name   string `json:"name"`
 	Method string `json:"method"`
-	Params []struct {
-		Key    string `json:"key"`
-		Value  string `json:"value"`
-		Active bool   `json:"active"`
-	} `json:"params"`
-	Headers []struct {
-		Key    string `json:"key"`
-		Value  string `json:"value"`
-		Active bool   `json:"active"`
-	} `json:"headers"`
+	Params []model.Param `json:"params"`
+	Headers []model.Header `json:"headers"`
 	Endpoint         string `json:"endpoint"`
 	TestScript       string `json:"testScript"`
 	PreRequestScript string `json:"preRequestScript"`
@@ -43,29 +30,28 @@ type TeamCollectionExportJSON struct {
 	Data *string `json:"data"`
 }
 
+type TeamCollectionImportDataJSON struct {
+	Headers []model.Header `json:"headers"`
+	Auth model.Auth `json:"auth"`
+}
+type TeamCollectionImportJSON struct {
+	Name string `json:"name"`
+	Folders []TeamCollectionImportJSON  `json:"folders"`
+	Requests []TeamRequestExportJSON  `json:"requests"`
+	Headers []model.Header `json:"headers"`
+	Auth model.Auth `json:"auth"`
+	Data TeamCollectionImportDataJSON `json:"data"`
+}
+
 type UserRequestExportJSON struct {
 	ID string `json:"id"`
 	V  string `json:"v"`
-	Auth struct {
-		AuthType   string `json:"authType"`
-		AuthActive bool   `json:"authActive"`
-	} `json:"auth"`
-	Body struct {
-		Body        *string `json:"body"`
-		ContentType *string `json:"contentType"`
-	} `json:"body"`
+	Auth model.Auth `json:"auth"`
+	Body model.Body `json:"body"`
 	Name   string `json:"name"`
 	Method string `json:"method"`
-	Params []struct {
-		Key    string `json:"key"`
-		Value  string `json:"value"`
-		Active bool   `json:"active"`
-	} `json:"params"`
-	Headers []struct {
-		Key    string `json:"key"`
-		Value  string `json:"value"`
-		Active bool   `json:"active"`
-	} `json:"headers"`
+	Params []model.Param `json:"params"`
+	Headers []model.Header `json:"headers"`
 	Endpoint         string `json:"endpoint"`
 	TestScript       string `json:"testScript"`
 	PreRequestScript string `json:"preRequestScript"`

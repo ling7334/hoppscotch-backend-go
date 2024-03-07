@@ -483,7 +483,7 @@ func (r *mutationResolver) CreateRootCollection(ctx context.Context, teamID stri
 
 func (r *mutationResolver) ImportCollectionsFromJSON(ctx context.Context, teamID string, jsonString string, parentCollectionID *string) (bool, error) {
 	// panic(fmt.Errorf("not implemented: ImportCollectionsFromJSON - importCollectionsFromJSON"))
-	colls := dto.TeamCollectionExportJSON{}
+	colls := []dto.TeamCollectionImportJSON{}
 	if err := json.Unmarshal([]byte(jsonString), &colls); err != nil {
 		return false, err
 	}
@@ -507,7 +507,7 @@ func (r *mutationResolver) CreateChildCollection(ctx context.Context, collection
 	if err := r.DB.First(coll, "id=?", collectionID).Error; err != nil {
 		return nil, err
 	}
-	child, err := createChildTeamCollection(r.DB, childTitle, data, *coll)
+	child, err := createChildTeamCollection(r.DB, childTitle, data, *coll, nil)
 	if err != nil {
 		return nil, err
 	}

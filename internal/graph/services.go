@@ -138,60 +138,77 @@ func createTeamRequest(db *gorm.DB, teamID string, collID string, request dto.Te
 	return child, err
 }
 
-func createTeamCollection(db *gorm.DB, teamID string, colls dto.TeamCollectionExportJSON, parentCollectionID *string) error {
-	coll := &model.TeamCollection{}
-	if parentCollectionID == nil {
-		var err error
-		coll, err = createRootTeamCollection(db, colls.Name, colls.Data, teamID)
+func createTeamCollection(db *gorm.DB, teamID string, colls []dto.TeamCollectionImportJSON, parentCollectionID *string) error {
+	for i, coll := range colls {
+		this := &model.TeamCollection{}
+		order := int32(i)
+		if parentCollectionID == nil {
+			var err error
+			data, err := json.Marshal(coll.Data)
+			if err != nil {
+				return err
+			}
+			datastr := string(data)
+			this, err = createRootTeamCollection(db, coll.Name, &datastr, teamID, &order)
+			if err != nil {
+				return err
+			}
+		} else {
+			var err error
+			if err := db.Where(`"id"=?`, parentCollectionID).First(this).Error; err != nil {
+				return err
+			}
+			data, err := json.Marshal(coll.Data)
+			if err != nil {
+				return err
+			}
+			datastr := string(data)
+			this, err = createChildTeamCollection(db, coll.Name, &datastr, *this, &order)
+			if err != nil {
+				return err
+			}
+		}
+		err := createTeamCollection(db, teamID, coll.Folders, &this.ID)
 		if err != nil {
 			return err
 		}
-	} else {
-		var err error
-		if err := db.Where(`"id"=?`, parentCollectionID).First(coll).Error; err != nil {
-			return err
-		}
-		coll, err = createChildTeamCollection(db, colls.Name, colls.Data, *coll)
-		if err != nil {
-			return err
-		}
-	}
-	for _, c := range colls.Folders {
-		err := createTeamCollection(db, teamID, c, &coll.ID)
-		if err != nil {
-			return err
-		}
-	}
-	for i, r := range colls.Requests {
-		_, err := createTeamRequest(db, teamID, coll.ID, r, int32(i))
-		if err != nil {
-			return err
+		for i, r := range coll.Requests {
+			_, err := createTeamRequest(db, teamID, this.ID, r, int32(i))
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func createRootTeamCollection(db *gorm.DB, title string, data *string, teamID string) (*model.TeamCollection, error) {
+func createRootTeamCollection(db *gorm.DB, title string, data *string, teamID string, order *int32) (*model.TeamCollection, error) {
+	if order == nil {
+		*order = getTeamMaxOrderIndex(db, &model.TeamCollection{}, &teamID, nil) + 1
+	}
 	child := &model.TeamCollection{
 		ID:         cuid.New(),
 		ParentID:   nil,
 		TeamID:     teamID,
 		Title:      title,
 		Data:       data,
-		OrderIndex: getTeamMaxOrderIndex(db, &model.TeamCollection{}, &teamID, nil) + 1,
+		OrderIndex: *order,
 	}
 	err := db.Create(child).Error
 	return child, err
 }
 
-func createChildTeamCollection(db *gorm.DB, title string, data *string, coll model.TeamCollection) (*model.TeamCollection, error) {
+func createChildTeamCollection(db *gorm.DB, title string, data *string, coll model.TeamCollection, order *int32) (*model.TeamCollection, error) {
+	if order == nil {
+		*order = getTeamMaxOrderIndex(db, &coll, &coll.TeamID, &coll.ID) + 1
+	}
 	child := &model.TeamCollection{
 		ID:         cuid.New(),
 		ParentID:   &coll.ID,
 		TeamID:     coll.TeamID,
 		Title:      title,
 		Data:       data,
-		OrderIndex: getTeamMaxOrderIndex(db, &coll, &coll.TeamID, &coll.ID) + 1,
+		OrderIndex: *order,
 		Parent:     &coll,
 	}
 	err := db.Create(child).Error
