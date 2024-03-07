@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	ex "exception"
 	"fmt"
+	mw "middleware"
 	"net/http"
 
 	"gorm.io/gorm"
@@ -14,19 +15,19 @@ func responder(w http.ResponseWriter, r any, status int) {
 		http.Error(w, fmt.Sprintf(`{"message":"%s","error":"%s","statusCode":%d}`, err, ex.ErrJSONInvalid, http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	} else {
-		w.Write(res)
 		w.WriteHeader(status)
+		w.Write(res)
 		return
 	}
 }
 
 func getDB(w http.ResponseWriter, r *http.Request) *gorm.DB {
 	ctx := r.Context()
-	db, ok := ctx.Value("DB").(*gorm.DB)
+	db, ok := ctx.Value(mw.ContextKey("DB")).(*gorm.DB)
 	if !ok {
 		responder(w, resp{
 			"database not exist",
-			ex.ErrEnvEmptyAuthProviders.Error(),
+			ex.ErrBugAuthNoUserCtx.Error(),
 			http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return nil
