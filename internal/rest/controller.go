@@ -78,7 +78,8 @@ func SignInMagicLink(w http.ResponseWriter, r *http.Request) {
 	tx := db.Begin()
 
 	if err := tx.First(user, "email=?", authData.Email).Error; err == nil {
-		if _, err := generateMagicLinkTokens(user, tx); err != nil {
+		var err error
+		if token, err = generateMagicLinkTokens(user, tx); err != nil {
 			tx.Rollback()
 			responder(w, resp{
 				err.Error(),
