@@ -26,6 +26,7 @@ require (
 	github.com/sosodev/duration v1.1.0 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.10 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 )

@@ -5,13 +5,13 @@ use (
 	./cmd/import-meta-env
 	./cmd/server
 
-	./pkg/exception
-	./pkg/model
-	./pkg/models
-	./pkg/mail
-	./pkg/middleware
-
-	./internal/rest
 	./internal/graph
 	./internal/graph/dto
+	./internal/rest
+
+	./pkg/exception
+	./pkg/mail
+	./pkg/middleware
+	./pkg/model
+	./pkg/models
 )
