@@ -2,6 +2,7 @@ package graph
 
 import (
 	"dto"
+	"encoding/json"
 	"fmt"
 	"model"
 
@@ -110,6 +111,77 @@ func moveUserOrderIndex(db *gorm.DB, model model.Orderable, teamID string, paren
 		base = base.Where(`"orderIndex"<?`, *lower)
 	}
 	return base.Update(`"orderIndex"`, expr).Error
+}
+
+func createTeamRequest(db *gorm.DB, teamID string, collID string, request dto.TeamRequestExportJSON, order int32) (*model.TeamRequest, error) {
+	req := model.ReqDetail{
+		V:                json.Number(request.V),
+		Auth:             request.Auth,
+		Body:             request.Body,
+		Name:             request.Name,
+		Method:           request.Method,
+		Params:           request.Params,
+		Headers:          request.Headers,
+		Endpoint:         request.Endpoint,
+		TestScript:       request.TestScript,
+		PreRequestScript: request.PreRequestScript,
+	}
+	child := &model.TeamRequest{
+		ID:           cuid.New(),
+		CollectionID: collID,
+		TeamID:       teamID,
+		Title:        request.Name,
+		Request:      req,
+		OrderIndex:   order,
+	}
+	err := db.Create(child).Error
+	return child, err
+}
+
+func createTeamCollection(db *gorm.DB, teamID string, colls dto.TeamCollectionExportJSON, parentCollectionID *string) error {
+	coll := &model.TeamCollection{}
+	if parentCollectionID == nil {
+		var err error
+		coll, err = createRootTeamCollection(db, colls.Name, colls.Data, teamID)
+		if err != nil {
+			return err
+		}
+	} else {
+		var err error
+		if err := db.Where(`"id"=?`, parentCollectionID).First(coll).Error; err != nil {
+			return err
+		}
+		coll, err = createChildTeamCollection(db, colls.Name, colls.Data, *coll)
+		if err != nil {
+			return err
+		}
+	}
+	for _, c := range colls.Folders {
+		err := createTeamCollection(db, teamID, c, &coll.ID)
+		if err != nil {
+			return err
+		}
+	}
+	for i, r := range colls.Requests {
+		_, err := createTeamRequest(db, teamID, coll.ID, r, int32(i))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func createRootTeamCollection(db *gorm.DB, title string, data *string, teamID string) (*model.TeamCollection, error) {
+	child := &model.TeamCollection{
+		ID:         cuid.New(),
+		ParentID:   nil,
+		TeamID:     teamID,
+		Title:      title,
+		Data:       data,
+		OrderIndex: getTeamMaxOrderIndex(db, &model.TeamCollection{}, &teamID, nil) + 1,
+	}
+	err := db.Create(child).Error
+	return child, err
 }
 
 func createChildTeamCollection(db *gorm.DB, title string, data *string, coll model.TeamCollection) (*model.TeamCollection, error) {
