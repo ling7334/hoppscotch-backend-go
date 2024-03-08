@@ -498,7 +498,30 @@ func (r *mutationResolver) ImportCollectionsFromJSON(ctx context.Context, teamID
 }
 
 func (r *mutationResolver) ReplaceCollectionsWithJSON(ctx context.Context, teamID string, jsonString string, parentCollectionID *string) (bool, error) {
-	panic(fmt.Errorf("not implemented: ReplaceCollectionsWithJSON - replaceCollectionsWithJSON"))
+	// panic(fmt.Errorf("not implemented: ReplaceCollectionsWithJSON - replaceCollectionsWithJSON"))
+	tx := r.DB.Begin()
+	var statement *gorm.DB
+	if parentCollectionID != nil {
+		statement = tx.Where(`"parentID"=?`, *parentCollectionID)
+	} else {
+		statement = tx.Where(`"parentID" IS NULL`)
+	}
+	if err := statement.Delete(&model.TeamCollection{}, `"teamID"=?`, teamID).Error; err != nil {
+		tx.Rollback()
+		return false, err
+	}
+	colls := []dto.TeamCollectionImportJSON{}
+	if err := json.Unmarshal([]byte(jsonString), &colls); err != nil {
+		tx.Rollback()
+		return false, err
+	}
+	err := createTeamCollection(tx, teamID, colls, parentCollectionID)
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
+	tx.Commit()
+	return true, nil
 }
 
 func (r *mutationResolver) CreateChildCollection(ctx context.Context, collectionID string, childTitle string, data *string) (*model.TeamCollection, error) {
