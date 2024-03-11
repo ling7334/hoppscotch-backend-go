@@ -147,23 +147,23 @@ type Infra struct {
 	// Returns a team info by ID when requested by Admin
 	TeamInfo *model.Team `json:"teamInfo"`
 	// Return count of all the members in a team
-	MembersCountInTeam int `json:"membersCountInTeam"`
+	MembersCountInTeam int64 `json:"membersCountInTeam"`
 	// Return count of all the stored collections in a team
-	CollectionCountInTeam int `json:"collectionCountInTeam"`
+	CollectionCountInTeam int64 `json:"collectionCountInTeam"`
 	// Return count of all the stored requests in a team
-	RequestCountInTeam int `json:"requestCountInTeam"`
+	RequestCountInTeam int64 `json:"requestCountInTeam"`
 	// Return count of all the stored environments in a team
-	EnvironmentCountInTeam int `json:"environmentCountInTeam"`
+	EnvironmentCountInTeam int64 `json:"environmentCountInTeam"`
 	// Return all the pending invitations in a team
 	PendingInvitationCountInTeam []*model.TeamInvitation `json:"pendingInvitationCountInTeam"`
 	// Return total number of Users in organization
-	UsersCount int `json:"usersCount"`
+	UsersCount int64 `json:"usersCount"`
 	// Return total number of Teams in organization
-	TeamsCount int `json:"teamsCount"`
+	TeamsCount int64 `json:"teamsCount"`
 	// Return total number of Team Collections in organization
-	TeamCollectionsCount int `json:"teamCollectionsCount"`
+	TeamCollectionsCount int64 `json:"teamCollectionsCount"`
 	// Return total number of Team Requests in organization
-	TeamRequestsCount int `json:"teamRequestsCount"`
+	TeamRequestsCount int64 `json:"teamRequestsCount"`
 	// Returns a list of all the shortcodes in the infra
 	AllShortcodes []*ShortcodeWithUserEmail `json:"allShortcodes"`
 }

@@ -1383,7 +1383,39 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 }
 
 func (r *queryResolver) Infra(ctx context.Context) (*dto.Infra, error) {
-	panic(fmt.Errorf("not implemented: Infra - infra"))
+	// panic(fmt.Errorf("not implemented: Infra - infra"))
+	admin, err := r.Admin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	admins := &[]*model.User{}
+	if err := r.DB.Where(`"isAdmin"=?`, true).Find(admins).Error; err != nil {
+		return nil, err
+	}
+	var UsersCount int64
+	if err := r.DB.Model(&model.User{}).Count(&UsersCount).Error; err != nil {
+		return nil, err
+	}
+	var TeamsCount int64
+	if err := r.DB.Model(&model.Team{}).Count(&TeamsCount).Error; err != nil {
+		return nil, err
+	}
+	var TeamCollectionsCount int64
+	if err := r.DB.Model(&model.TeamCollection{}).Count(&TeamCollectionsCount).Error; err != nil {
+		return nil, err
+	}
+	var TeamRequestsCount int64
+	if err := r.DB.Model(&model.TeamRequest{}).Count(&TeamRequestsCount).Error; err != nil {
+		return nil, err
+	}
+	return &dto.Infra{
+		ExecutedBy:           admin,
+		Admins:               *admins,
+		UsersCount:           UsersCount,
+		TeamsCount:           TeamsCount,
+		TeamCollectionsCount: TeamCollectionsCount,
+		TeamRequestsCount:    TeamRequestsCount,
+	}, nil
 }
 
 func (r *queryResolver) InfraConfigs(ctx context.Context, configNames []dto.InfraConfigEnum) (c []*model.InfraConfig, err error) {
