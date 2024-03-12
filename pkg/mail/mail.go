@@ -143,7 +143,8 @@ func SendUserInvitation(to string, magicLink string) error {
 		return ex.ErrEmailFailed
 	}
 
-	err = SendMailWithTLS(u, auth, port, from, to, body.Bytes())
+	err = smtp.SendMail(u.Host+":"+port, auth, from, []string{to}, body.Bytes())
+	// err = SendMailWithTLS(u, auth, port, from, to, body.Bytes())
 	if err != nil {
 		log.Error().Err(err).Msg("fail to send mail")
 		return ex.ErrSenderEmailInvalid
