@@ -292,6 +292,7 @@ func genCookie(UserApi, token string) (*UserInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Info().Msgf("userinfo: %s", bytes)
 	var userInfo *UserInfo
 	err = json.Unmarshal(bytes, userInfo)
 	return userInfo, err
