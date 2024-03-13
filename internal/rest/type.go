@@ -43,9 +43,9 @@ type resp struct {
 // }
 
 type UserInfo struct {
-	AvatarURL     string `json:"avatar_url,omitempty"`
-	Name          string `json:"name,omitempty"`
-	Picture       string `json:"picture,omitempty"`
+	AvatarURL     string `json:"avatar_url"`
+	Name          string `json:"name"`
+	Picture       string `json:"picture"`
 	Email         string `json:"email"`
-	EmailVerified bool   `json:"email_verified,omitempty"`
+	EmailVerified bool   `json:"email_verified"`
 }

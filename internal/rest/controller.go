@@ -276,25 +276,25 @@ func Redirect(config *oauth2.Config) http.Handler {
 }
 
 // 根据token获取userInfo，置换出自定义的cookie
-func genCookie(UserApi, token string) (*UserInfo, error) {
+func genCookie(UserApi, token string) (UserInfo, error) {
 	httpClient := http.Client{}
 	req, err := http.NewRequest(http.MethodGet, UserApi, nil)
 	if err != nil {
-		return nil, err
+		return UserInfo{}, err
 	}
 
 	req.Header.Set("Authorization", "token "+token)
 	res, err := httpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return UserInfo{}, err
 	}
 	bytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, err
+		return UserInfo{}, err
 	}
 	log.Info().Msgf("userinfo: %s", bytes)
-	var userInfo *UserInfo
-	err = json.Unmarshal(bytes, userInfo)
+	var userInfo UserInfo
+	err = json.Unmarshal(bytes, &userInfo)
 	return userInfo, err
 }
 
