@@ -10,6 +10,7 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
 )
 
@@ -23,6 +24,9 @@ var accessExpires time.Duration
 var refreshExpires time.Duration
 
 func init() {
+	if _, err := os.Stat(".env"); err == nil {
+		godotenv.Load(".env")
+	}
 	baseURL = os.Getenv("VITE_BASE_URL")
 	secret = os.Getenv("JWT_SECRET")
 	if secret == "" {

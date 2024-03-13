@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	mw "middleware"
 	"model"
 
-	"github.com/coreos/go-oidc/v3/oidc"
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
@@ -28,11 +28,11 @@ func ServeMux(path string) *http.ServeMux {
 	mux.HandleFunc(path+"refresh", Refersh)
 	mux.HandleFunc(path+"logout", Logout)
 	mux.Handle(path+"google", Redirect(GoogleConfig))
-	mux.Handle(path+"google/callback", Callback(GoogleConfig, GoogleProvider))
+	mux.Handle(path+"google/callback", Callback(GoogleConfig, GoogleUserInfoURL))
 	mux.Handle(path+"github", Redirect(GithubConfig))
-	mux.Handle(path+"github/callback", Callback(GithubConfig, GithubProvider))
+	mux.Handle(path+"github/callback", Callback(GithubConfig, GithubUserInfoURL))
 	mux.Handle(path+"microsoft", Redirect(MicrosoftConfig))
-	mux.Handle(path+"microsoft/callback", Callback(MicrosoftConfig, MicrosoftProvider))
+	mux.Handle(path+"microsoft/callback", Callback(MicrosoftConfig, MicrosoftUserInfoURL))
 
 	return mux
 }
@@ -274,7 +274,29 @@ func Redirect(config *oauth2.Config) http.Handler {
 	})
 }
 
-func Callback(config *oauth2.Config, provider *oidc.Provider) http.Handler {
+// 根据token获取userInfo，置换出自定义的cookie
+func genCookie(UserApi, token string) (userInfo *UserInfo, err error) {
+	httpClient := http.Client{}
+	req, err := http.NewRequest(http.MethodGet, UserApi, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "token "+token)
+	res, err := httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	bytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(bytes, userInfo)
+	return
+}
+
+func Callback(config *oauth2.Config, UserInfoURL string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		db := getDB(w, r)
 		if db == nil {
@@ -296,7 +318,8 @@ func Callback(config *oauth2.Config, provider *oidc.Provider) http.Handler {
 			return
 		}
 
-		userInfo, err := provider.UserInfo(r.Context(), oauth2.StaticTokenSource(oauth2Token))
+		// userInfo, err := provider.UserInfo(r.Context(), oauth2.StaticTokenSource(oauth2Token))
+		userInfo, err := genCookie(UserInfoURL, oauth2Token.AccessToken)
 		if err != nil {
 			http.Error(w, "Failed to get userinfo: "+err.Error(), http.StatusInternalServerError)
 			return

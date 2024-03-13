@@ -11,6 +11,7 @@ import (
 
 	ex "exception"
 
+	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
 )
 
@@ -25,6 +26,9 @@ var (
 )
 
 func init() {
+	if _, err := os.Stat(".env"); err == nil {
+		godotenv.Load(".env")
+	}
 	UserTemplate = os.Getenv("MAILER_USER_TEMPLATE")
 	if UserTemplate == "" {
 		UserTemplate = defaultUserTemplate

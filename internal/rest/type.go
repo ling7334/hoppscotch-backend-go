@@ -31,3 +31,13 @@ type resp struct {
 	Error      string `json:"error"`
 	StatusCode int    `json:"statusCode"`
 }
+
+// UserInfo represents the OpenID Connect userinfo claims.
+type UserInfo struct {
+	Subject       string `json:"sub"`
+	Profile       string `json:"profile"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+
+	claims []byte
+}
