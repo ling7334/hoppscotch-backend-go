@@ -32,12 +32,20 @@ type resp struct {
 	StatusCode int    `json:"statusCode"`
 }
 
-// UserInfo represents the OpenID Connect userinfo claims.
-type UserInfo struct {
-	Subject       string `json:"sub"`
-	Profile       string `json:"profile"`
-	Email         string `json:"email"`
-	EmailVerified bool   `json:"email_verified"`
+// // UserInfo represents the OpenID Connect userinfo claims.
+// type UserInfo struct {
+// 	Subject       string `json:"sub"`
+// 	Profile       string `json:"profile"`
+// 	Email         string `json:"email"`
+// 	EmailVerified bool   `json:"email_verified"`
 
-	claims []byte
+// 	claims []byte
+// }
+
+type UserInfo struct {
+	AvatarURL     string `json:"avatar_url,omitempty"`
+	Name          string `json:"name,omitempty"`
+	Picture       string `json:"picture,omitempty"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified,omitempty"`
 }

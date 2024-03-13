@@ -15,6 +15,7 @@ import (
 	"model"
 
 	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/lucsky/cuid"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
@@ -275,7 +276,7 @@ func Redirect(config *oauth2.Config) http.Handler {
 }
 
 // 根据token获取userInfo，置换出自定义的cookie
-func genCookie(UserApi, token string) (userInfo *UserInfo, err error) {
+func genCookie(UserApi, token string) (*UserInfo, error) {
 	httpClient := http.Client{}
 	req, err := http.NewRequest(http.MethodGet, UserApi, nil)
 	if err != nil {
@@ -291,9 +292,9 @@ func genCookie(UserApi, token string) (userInfo *UserInfo, err error) {
 	if err != nil {
 		return nil, err
 	}
-
+	var userInfo *UserInfo
 	err = json.Unmarshal(bytes, userInfo)
-	return
+	return userInfo, err
 }
 
 func Callback(config *oauth2.Config, UserInfoURL string) http.Handler {
@@ -324,10 +325,17 @@ func Callback(config *oauth2.Config, UserInfoURL string) http.Handler {
 			http.Error(w, "Failed to get userinfo: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		var profile profile
-		if err := json.Unmarshal([]byte(userInfo.Profile), &profile); err != nil {
-			http.Error(w, "Failed to parse profile: "+err.Error(), http.StatusInternalServerError)
-			return
+		// var profile profile
+		// if err := json.Unmarshal([]byte(userInfo.Profile), &profile); err != nil {
+		// 	http.Error(w, "Failed to parse profile: "+err.Error(), http.StatusInternalServerError)
+		// 	return
+		// }
+		profile := profile{
+			ID:          cuid.New(),
+			Provider:    UserInfoURL,
+			Email:       []string{userInfo.Email},
+			DisplayName: []string{userInfo.Name},
+			Photos:      []string{userInfo.AvatarURL, userInfo.Picture},
 		}
 
 		user := &model.User{}
