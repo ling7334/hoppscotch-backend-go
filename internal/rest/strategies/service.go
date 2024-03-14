@@ -7,6 +7,7 @@ import (
 	mw "middleware"
 	"model"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/lucsky/cuid"
@@ -82,7 +83,8 @@ func getDB(w http.ResponseWriter, r *http.Request) *gorm.DB {
 	return db
 }
 
-func SignOrLogin(tx *gorm.DB, w http.ResponseWriter, r *http.Request, profile profile, RedirectURL string) {
+func SignOrLogin(tx *gorm.DB, w http.ResponseWriter, r *http.Request, profile profile) {
+	redirectURL := os.Getenv("REDIRECT_URL")
 	user := &model.User{}
 	err := tx.Where("email =?", profile.Email[0]).First(user).Error
 	if err != nil {
@@ -145,5 +147,5 @@ func SignOrLogin(tx *gorm.DB, w http.ResponseWriter, r *http.Request, profile pr
 	}
 	tx.Commit()
 	authCookieHandler(w, r, &authTokens{at, rt})
-	http.Redirect(w, r, RedirectURL, http.StatusOK)
+	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 }

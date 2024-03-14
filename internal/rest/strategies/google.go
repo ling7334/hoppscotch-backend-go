@@ -71,6 +71,6 @@ func GoogleCallback(config *oauth2.Config) http.Handler {
 			AccessToken:  token.AccessToken,
 			RefreshToken: token.RefreshToken,
 		}
-		SignOrLogin(tx, w, r, profile, config.RedirectURL)
+		SignOrLogin(tx, w, r, profile)
 	})
 }

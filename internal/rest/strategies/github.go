@@ -156,7 +156,7 @@ func GithubCallback(config *oauth2.Config) http.Handler {
 			RefreshToken: oauth2Token.RefreshToken,
 		}
 
-		SignOrLogin(tx, w, r, profile, config.RedirectURL)
+		SignOrLogin(tx, w, r, profile)
 
 	})
 }
