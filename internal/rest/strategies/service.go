@@ -131,7 +131,7 @@ func SignOrLogin(tx *gorm.DB, w http.ResponseWriter, r *http.Request, profile pr
 	}
 
 	account := &model.Account{}
-	err = tx.Where(`provider=? AND "providerAccountId"=?`, "github", profile.ID).First(account).Error
+	err = tx.Where(`provider=? AND "providerAccountId"=?`, profile.Provider, profile.ID).First(account).Error
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
 			tx.Rollback()
