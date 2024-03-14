@@ -136,30 +136,6 @@ func authCookieHandler(w http.ResponseWriter, r *http.Request, token *authTokens
 	})
 }
 
-func createSSOUser(db *gorm.DB, profile profile) (*model.User, error) {
-	user := &model.User{
-		UID:         cuid.New(),
-		Email:       &profile.Email[0],
-		DisplayName: &profile.DisplayName[0],
-		PhotoURL:    &profile.Photos[0],
-	}
-	err := db.Create(user).Error
-	return user, err
-}
-
-func createSSOAccount(db *gorm.DB, profile profile, uid, access, refresh string) (*model.Account, error) {
-	account := &model.Account{
-		ID:                   cuid.New(),
-		Provider:             profile.Provider,
-		ProviderAccountID:    profile.ID,
-		ProviderAccessToken:  &access,
-		ProviderRefreshToken: &refresh,
-		UserID:               uid,
-	}
-	err := db.Create(account).Error
-	return account, err
-}
-
 func randString(nByte int) (string, error) {
 	b := make([]byte, nByte)
 	if _, err := io.ReadFull(rand.Reader, b); err != nil {

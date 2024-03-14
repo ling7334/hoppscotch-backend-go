@@ -8,6 +8,7 @@ use (
 	./internal/graph
 	./internal/graph/dto
 	./internal/rest
+	./internal/rest/strategies
 
 	./pkg/exception
 	./pkg/mail

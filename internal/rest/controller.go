@@ -3,9 +3,9 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
+	st "strategies"
 	"strings"
 	"time"
 
@@ -15,7 +15,6 @@ import (
 	"model"
 
 	jwt "github.com/golang-jwt/jwt/v5"
-	"github.com/lucsky/cuid"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
@@ -29,11 +28,11 @@ func ServeMux(path string) *http.ServeMux {
 	mux.HandleFunc(path+"refresh", Refersh)
 	mux.HandleFunc(path+"logout", Logout)
 	mux.Handle(path+"google", Redirect(GoogleConfig))
-	mux.Handle(path+"google/callback", Callback(GoogleConfig, GoogleUserInfoURL))
+	mux.Handle(path+"google/callback", st.GoogleCallback(GoogleConfig))
 	mux.Handle(path+"github", Redirect(GithubConfig))
-	mux.Handle(path+"github/callback", Callback(GithubConfig, GithubUserInfoURL))
+	mux.Handle(path+"github/callback", st.GithubCallback(GithubConfig))
 	mux.Handle(path+"microsoft", Redirect(MicrosoftConfig))
-	mux.Handle(path+"microsoft/callback", Callback(MicrosoftConfig, MicrosoftUserInfoURL))
+	mux.Handle(path+"microsoft/callback", st.MicrosoftCallback(MicrosoftConfig))
 
 	return mux
 }
@@ -178,7 +177,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	log.Info().Msgf("ccess_token: %s \n refresh_token: %s", authTokens.Access_token, authTokens.Refresh_token)
+	log.Info().Msgf("access_token: %s \n refresh_token: %s", authTokens.Access_token, authTokens.Refresh_token)
 	authCookieHandler(w, r, authTokens)
 	w.WriteHeader(http.StatusOK)
 }
@@ -272,127 +271,5 @@ func Redirect(config *oauth2.Config) http.Handler {
 		}
 		http.SetCookie(w, c)
 		http.Redirect(w, r, config.AuthCodeURL(state), http.StatusFound)
-	})
-}
-
-// 根据token获取userInfo，置换出自定义的cookie
-func genCookie(UserApi, token string) (UserInfo, error) {
-	httpClient := http.Client{}
-	req, err := http.NewRequest(http.MethodGet, UserApi, nil)
-	if err != nil {
-		return UserInfo{}, err
-	}
-
-	req.Header.Set("Authorization", "token "+token)
-	res, err := httpClient.Do(req)
-	if err != nil {
-		return UserInfo{}, err
-	}
-	bytes, err := io.ReadAll(res.Body)
-	if err != nil {
-		return UserInfo{}, err
-	}
-	log.Info().Msgf("userinfo: %s", bytes)
-	var userInfo UserInfo
-	err = json.Unmarshal(bytes, &userInfo)
-	return userInfo, err
-}
-
-func Callback(config *oauth2.Config, UserInfoURL string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		db := getDB(w, r)
-		if db == nil {
-			return
-		}
-		state, err := r.Cookie("state")
-		if err != nil {
-			http.Error(w, "state not found", http.StatusBadRequest)
-			return
-		}
-		if r.URL.Query().Get("state") != state.Value {
-			http.Error(w, "state did not match", http.StatusBadRequest)
-			return
-		}
-
-		oauth2Token, err := config.Exchange(r.Context(), r.URL.Query().Get("code"))
-		if err != nil {
-			http.Error(w, "Failed to exchange token: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// userInfo, err := provider.UserInfo(r.Context(), oauth2.StaticTokenSource(oauth2Token))
-		userInfo, err := genCookie(UserInfoURL, oauth2Token.AccessToken)
-		if err != nil {
-			http.Error(w, "Failed to get userinfo: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		// var profile profile
-		// if err := json.Unmarshal([]byte(userInfo.Profile), &profile); err != nil {
-		// 	http.Error(w, "Failed to parse profile: "+err.Error(), http.StatusInternalServerError)
-		// 	return
-		// }
-		profile := profile{
-			ID:          cuid.New(),
-			Provider:    UserInfoURL,
-			Email:       []string{userInfo.Email},
-			DisplayName: []string{userInfo.Name},
-			Photos:      []string{userInfo.AvatarURL, userInfo.Picture},
-		}
-
-		user := &model.User{}
-		err = db.Where("email =?", userInfo.Email).First(user).Error
-		if err != nil {
-			if err != gorm.ErrRecordNotFound {
-				http.Error(w, "Failed to get user: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
-			user, err = createSSOUser(db, profile)
-			if err != gorm.ErrRecordNotFound {
-				http.Error(w, "Failed to create user: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
-		}
-		if user.DisplayName == nil {
-			user.DisplayName = &userInfo.Email
-			err = db.Save(user).Error
-			if err != nil {
-				http.Error(w, "Failed to save user: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
-		}
-
-		at, err := mw.NewToken(user.UID, true)
-		if err != nil {
-			http.Error(w, "Failed to generate access token: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		rt, err := mw.NewToken(user.UID, false)
-		if err != nil {
-			http.Error(w, "Failed to generate refresh token: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		user.RefreshToken = &rt
-		err = db.Save(&user).Error
-		if err != nil {
-			http.Error(w, "Failed to set refresh token: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		account := &model.Account{}
-		err = db.Where("provider=? AND providerAccountId=?", "magic", user.Email).First(account).Error
-		if err != nil {
-			if err != gorm.ErrRecordNotFound {
-				http.Error(w, "Failed to get account: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
-			_, err = createSSOAccount(db, profile, user.UID, at, rt)
-			if err != nil {
-				http.Error(w, "Failed to create account: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
-		}
-
-		authCookieHandler(w, r, &authTokens{at, rt})
-		http.Redirect(w, r, config.RedirectURL, http.StatusOK)
 	})
 }

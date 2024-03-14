@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/github"
+	"golang.org/x/oauth2/google"
+	"golang.org/x/oauth2/microsoft"
 )
 
 const defaultSecret = "secret123"
@@ -48,10 +51,7 @@ func init() {
 	if google_client_id != "" && google_client_secret != "" && google_callback_url != "" && google_scope != "" {
 		// GoogleProvider, err = oidc.NewProvider(context.Background(), GoogleURL)
 		// if err == nil {
-		endpoint := oauth2.Endpoint{
-			AuthURL:  "https://accounts.google.com/o/oauth2/auth",
-			TokenURL: "https://accounts.google.com/o/oauth2/token",
-		}
+		endpoint := google.Endpoint
 		scope := strings.Split(google_scope, ",")
 		// scope = append(scope, oidc.ScopeOpenID)
 		GoogleConfig = &oauth2.Config{
@@ -70,11 +70,7 @@ func init() {
 	if github_client_id != "" && github_client_secret != "" && github_callback_url != "" && github_scope != "" {
 		// GithubProvider, err := oidc.NewProvider(context.Background(), GithubURL)
 		// if err == nil {
-		endpoint := oauth2.Endpoint{
-			AuthURL:       "https://github.com/login/oauth/authorize",
-			DeviceAuthURL: "https://github.com/login/device/code",
-			TokenURL:      "https://github.com/login/oauth/access_token",
-		}
+		endpoint := github.Endpoint
 		scope := strings.Split(github_scope, ",")
 		// scope = append(scope, oidc.ScopeOpenID)
 		GithubConfig = &oauth2.Config{
@@ -94,10 +90,8 @@ func init() {
 	if microsoft_client_id != "" && microsoft_client_secret != "" && microsoft_callback_url != "" && microsoft_scope != "" {
 		// MicrosoftProvider, err := oidc.NewProvider(context.Background(), fmt.Sprintf(MicrosoftURL, microsoft_tenant))
 		// if err == nil {
-		endpoint := oauth2.Endpoint{
-			AuthURL:  "https://login.microsoftonline.com/" + microsoft_tenant + "/oauth2/v2.0/authorize",
-			TokenURL: "https://login.microsoftonline.com/" + microsoft_tenant + "/oauth2/v2.0/token",
-		}
+
+		endpoint := microsoft.AzureADEndpoint(microsoft_tenant)
 		scope := strings.Split(microsoft_scope, ",")
 		// scope = append(scope, oidc.ScopeOpenID)
 		MicrosoftConfig = &oauth2.Config{
