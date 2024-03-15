@@ -23,6 +23,117 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+func (r *infraResolver) UserInfo(ctx context.Context, obj *dto.Infra, userUID string) (*model.User, error) {
+	// panic(fmt.Errorf("not implemented: UserInfo - userInfo"))
+	var user model.User
+	db := GetPreloadedDB(r.DB, ctx)
+	if err := db.Where(`"uid"=?`, userUID).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *infraResolver) AllUsers(ctx context.Context, obj *dto.Infra, cursor *string, take *int) (u []*model.User, err error) {
+	// panic(fmt.Errorf("not implemented: AllUsers - allUsers"))
+	db := GetPreloadedDB(r.DB, ctx)
+	if cursor != nil {
+		db = db.Where(`uid > ?`, *cursor)
+	}
+	err = db.Limit(getLimit(take)).Find(&u).Error
+	return
+}
+
+func (r *infraResolver) AllTeams(ctx context.Context, obj *dto.Infra, cursor *string, take *int) (t []*model.Team, err error) {
+	// panic(fmt.Errorf("not implemented: AllTeams - allTeams"))
+	val := reflect.ValueOf(&model.Team{}).Elem()
+	fields := []string{}
+	for i := 0; i < val.NumField(); i++ {
+		fields = append(fields, val.Type().Field(i).Name)
+	}
+	db := GetPreloadedDB(r.DB, ctx, fields...)
+	if cursor != nil {
+		db = db.Where(`id > ?`, *cursor)
+	}
+	err = db.Limit(getLimit(take)).Find(&t).Error
+	return
+}
+
+func (r *infraResolver) TeamInfo(ctx context.Context, obj *dto.Infra, teamID string) (*model.Team, error) {
+	// panic(fmt.Errorf("not implemented: TeamInfo - teamInfo"))
+	var team model.Team
+	val := reflect.ValueOf(&team).Elem()
+	fields := []string{}
+	for i := 0; i < val.NumField(); i++ {
+		fields = append(fields, val.Type().Field(i).Name)
+	}
+	db := GetPreloadedDB(r.DB, ctx, fields...)
+	if err := db.Where(`"id"=?`, teamID).First(&team).Error; err != nil {
+		return nil, err
+	}
+	return &team, nil
+}
+
+func (r *infraResolver) MembersCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (int64, error) {
+	// panic(fmt.Errorf("not implemented: MembersCountInTeam - membersCountInTeam"))
+	var count int64
+	err := r.DB.Model(&model.TeamMember{}).Where(`"teamID"=?`, teamID).Count(&count).Error
+	return count, err
+}
+
+func (r *infraResolver) CollectionCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (int64, error) {
+	// panic(fmt.Errorf("not implemented: CollectionCountInTeam - collectionCountInTeam"))
+	var count int64
+	err := r.DB.Model(&model.TeamCollection{}).Where(`"teamID"=?`, teamID).Count(&count).Error
+	return count, err
+}
+
+func (r *infraResolver) RequestCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (int64, error) {
+	// panic(fmt.Errorf("not implemented: RequestCountInTeam - requestCountInTeam"))
+	var count int64
+	err := r.DB.Model(&model.TeamRequest{}).Where(`"teamID"=?`, teamID).Count(&count).Error
+	return count, err
+}
+
+func (r *infraResolver) EnvironmentCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (int64, error) {
+	// panic(fmt.Errorf("not implemented: EnvironmentCountInTeam - environmentCountInTeam"))
+	var count int64
+	err := r.DB.Model(&model.TeamEnvironment{}).Where(`"teamID"=?`, teamID).Count(&count).Error
+	return count, err
+}
+
+func (r *infraResolver) PendingInvitationCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (invites []*model.TeamInvitation, err error) {
+	// panic(fmt.Errorf("not implemented: PendingInvitationCountInTeam - pendingInvitationCountInTeam"))
+	db := GetPreloadedDB(r.DB, ctx)
+	err = db.Where(`"teamID"=?`, teamID).Find(&invites).Error
+	return
+}
+
+func (r *infraResolver) AllShortcodes(ctx context.Context, obj *dto.Infra, cursor *string, take *int, userEmail *string) (res []*dto.ShortcodeWithUserEmail, err error) {
+	// panic(fmt.Errorf("not implemented: AllShortcodes - allShortcodes"))
+	var creator model.User
+	if err := r.DB.Where(`email=?`, userEmail).First(&creator).Error; err != nil {
+		return nil, err
+	}
+	db := GetPreloadedDB(r.DB, ctx)
+	var scs []*model.Shortcode
+	if err := db.Where(`"creatorUid"=? AND id > ?`, creator.UID, *cursor).Limit(getLimit(take)).Find(&scs).Error; err != nil {
+		return nil, err
+	}
+	for _, s := range scs {
+		res = append(res, &dto.ShortcodeWithUserEmail{
+			ID:         s.ID,
+			Request:    s.Request,
+			Properties: s.EmbedProperties,
+			CreatedOn:  s.CreatedOn,
+			Creator: &dto.ShortcodeCreator{
+				UID:   s.Creator.UID,
+				Email: *s.Creator.Email,
+			},
+		})
+	}
+	return
+}
+
 func (r *mutationResolver) UpdateUserSessions(ctx context.Context, currentSession string, sessionType model.ReqType) (*model.User, error) {
 	// panic(fmt.Errorf("not implemented: UpdateUserSessions - updateUserSessions"))
 	user, ok := ctx.Value(mw.ContextKey("operator")).(*model.User)
@@ -1382,107 +1493,6 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	return user, err
 }
 
-func (r *infraResolver) UserInfo(ctx context.Context, obj *dto.Infra, userUID string) (*model.User, error) {
-	// panic(fmt.Errorf("not implemented: UserInfo - userInfo"))
-	var user model.User
-	db := GetPreloadedDB(r.DB, ctx)
-	if err := db.Where(`"uid"=?`, userUID).First(&user).Error; err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
-func (r *infraResolver) AllUsers(ctx context.Context, obj *dto.Infra, cursor *string, take *int) (u []*model.User, err error) {
-	// panic(fmt.Errorf("not implemented: AllUsers - allUsers"))
-	db := GetPreloadedDB(r.DB, ctx)
-	if cursor != nil {
-		db = db.Where(`uid > ?`, *cursor)
-	}
-	err = db.Limit(getLimit(take)).Find(&u).Error
-	return
-}
-
-func (r *infraResolver) AllTeams(ctx context.Context, obj *dto.Infra, cursor *string, take *int) (t []*model.Team, err error) {
-	// panic(fmt.Errorf("not implemented: AllTeams - allTeams"))
-	db := GetPreloadedDB(r.DB, ctx)
-	if cursor != nil {
-		db = db.Where(`id > ?`, *cursor)
-	}
-	err = db.Limit(getLimit(take)).Find(&t).Error
-	return
-}
-
-func (r *infraResolver) TeamInfo(ctx context.Context, obj *dto.Infra, teamID string) (*model.Team, error) {
-	// panic(fmt.Errorf("not implemented: TeamInfo - teamInfo"))
-	var team model.Team
-	db := GetPreloadedDB(r.DB, ctx)
-	if err := db.Where(`"id"=?`, teamID).First(&team).Error; err != nil {
-		return nil, err
-	}
-	return &team, nil
-}
-
-func (r *infraResolver) MembersCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (int64, error) {
-	// panic(fmt.Errorf("not implemented: MembersCountInTeam - membersCountInTeam"))
-	var count int64
-	err := r.DB.Model(&model.TeamMember{}).Where(`"teamID"=?`, teamID).Count(&count).Error
-	return count, err
-}
-
-func (r *infraResolver) CollectionCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (int64, error) {
-	// panic(fmt.Errorf("not implemented: CollectionCountInTeam - collectionCountInTeam"))
-	var count int64
-	err := r.DB.Model(&model.TeamCollection{}).Where(`"teamID"=?`, teamID).Count(&count).Error
-	return count, err
-}
-
-func (r *infraResolver) RequestCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (int64, error) {
-	// panic(fmt.Errorf("not implemented: RequestCountInTeam - requestCountInTeam"))
-	var count int64
-	err := r.DB.Model(&model.TeamRequest{}).Where(`"teamID"=?`, teamID).Count(&count).Error
-	return count, err
-}
-
-func (r *infraResolver) EnvironmentCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (int64, error) {
-	// panic(fmt.Errorf("not implemented: EnvironmentCountInTeam - environmentCountInTeam"))
-	var count int64
-	err := r.DB.Model(&model.TeamEnvironment{}).Where(`"teamID"=?`, teamID).Count(&count).Error
-	return count, err
-}
-
-func (r *infraResolver) PendingInvitationCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (invites []*model.TeamInvitation, err error) {
-	// panic(fmt.Errorf("not implemented: PendingInvitationCountInTeam - pendingInvitationCountInTeam"))
-	db := GetPreloadedDB(r.DB, ctx)
-	err = db.Where(`"teamID"=?`, teamID).Find(&invites).Error
-	return
-}
-
-func (r *infraResolver) AllShortcodes(ctx context.Context, obj *dto.Infra, cursor *string, take *int, userEmail *string) (res []*dto.ShortcodeWithUserEmail, err error) {
-	// panic(fmt.Errorf("not implemented: AllShortcodes - allShortcodes"))
-	var creator model.User
-	if err := r.DB.Where(`email=?`, userEmail).First(&creator).Error; err != nil {
-		return nil, err
-	}
-	db := GetPreloadedDB(r.DB, ctx)
-	var scs []*model.Shortcode
-	if err := db.Where(`"creatorUid"=? AND id > ?`, creator.UID, *cursor).Limit(getLimit(take)).Find(&scs).Error; err != nil {
-		return nil, err
-	}
-	for _, s := range scs {
-		res = append(res, &dto.ShortcodeWithUserEmail{
-			ID:         s.ID,
-			Request:    s.Request,
-			Properties: s.EmbedProperties,
-			CreatedOn:  s.CreatedOn,
-			Creator: &dto.ShortcodeCreator{
-				UID:   s.Creator.UID,
-				Email: *s.Creator.Email,
-			},
-		})
-	}
-	return
-}
-
 func (r *queryResolver) Infra(ctx context.Context) (*dto.Infra, error) {
 	// panic(fmt.Errorf("not implemented: Infra - infra"))
 	admin, err := r.Admin(ctx)
@@ -2244,7 +2254,11 @@ func (r *subscriptionResolver) UserCollectionOrderUpdated(ctx context.Context) (
 
 func (r *teamResolver) Members(ctx context.Context, obj *model.Team, cursor *string) (m []*model.TeamMember, err error) {
 	// panic(fmt.Errorf("not implemented: Members - members"))
-	err = GetPreloadedDB(r.DB, ctx).Find(&m, `"teamID"=?`, obj.ID).Error
+	base := GetPreloadedDB(r.DB, ctx)
+	if cursor != nil {
+		base = base.Where(`id > ?`, cursor)
+	}
+	err = base.Find(&m, `"teamID"=?`, obj.ID).Error
 	return
 }
 
