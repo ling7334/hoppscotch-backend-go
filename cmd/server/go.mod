@@ -3,7 +3,7 @@ module server
 go 1.21.5
 
 require (
-	github.com/99designs/gqlgen v0.17.42
+	github.com/99designs/gqlgen v0.17.45
 	github.com/gorilla/websocket v1.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/rs/zerolog v1.31.0
