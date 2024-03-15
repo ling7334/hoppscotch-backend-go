@@ -1,3 +1,8 @@
+directive @goField(
+	forceResolver: Boolean
+	name: String
+	omittable: Boolean
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 directive @isLogin on FIELD_DEFINITION
 directive @isAdmin on FIELD_DEFINITION
 
@@ -230,6 +235,8 @@ type UserHistoryDeletedManyData {
   reqType: ReqType!
 }
 
+scalar Int64
+
 type Team {
   """ID of the team"""
   id: ID!
@@ -250,13 +257,13 @@ type Team {
   myRole: TeamMemberRole
 
   """The number of users with the OWNER role in the team"""
-  ownersCount: Int!
+  ownersCount: Int64!
 
   """The number of users with the EDITOR role in the team"""
-  editorsCount: Int!
+  editorsCount: Int64!
 
   """The number of users with the VIEWER role in the team"""
-  viewersCount: Int!
+  viewersCount: Int64!
 
   """Get all the active invites in the team"""
   teamInvitations: [TeamInvitation!]!
@@ -507,7 +514,7 @@ type Infra {
   userInfo(
     """The user UID"""
     userUid: ID!
-  ): User!
+  ): User! @goField(forceResolver: true)
 
   """Returns a list of all the users in infra"""
   allUsers(
@@ -516,7 +523,7 @@ type Infra {
 
     """Number of items to fetch"""
     take: Int = 10
-  ): [User!]!
+  ): [User!]! @goField(forceResolver: true)
 
   """Returns a list of all the invited users"""
   invitedUsers: [InvitedUser!]!
@@ -528,55 +535,55 @@ type Infra {
 
     """Number of items to fetch"""
     take: Int = 10
-  ): [Team!]!
+  ): [Team!]! @goField(forceResolver: true)
 
   """Returns a team info by ID when requested by Admin"""
   teamInfo(
     """Team ID for which info to fetch"""
     teamID: ID!
-  ): Team!
+  ): Team! @goField(forceResolver: true)
 
   """Return count of all the members in a team"""
   membersCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): Int!
+  ): Int64! @goField(forceResolver: true)
 
   """Return count of all the stored collections in a team"""
   collectionCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): Int!
+  ): Int64! @goField(forceResolver: true)
 
   """Return count of all the stored requests in a team"""
   requestCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): Int!
+  ): Int64! @goField(forceResolver: true)
 
   """Return count of all the stored environments in a team"""
   environmentCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): Int!
+  ): Int64! @goField(forceResolver: true)
 
   """Return all the pending invitations in a team"""
   pendingInvitationCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): [TeamInvitation!]!
+  ): [TeamInvitation!]! @goField(forceResolver: true)
 
   """Return total number of Users in organization"""
-  usersCount: Int!
+  usersCount: Int64!
 
   """Return total number of Teams in organization"""
-  teamsCount: Int!
+  teamsCount: Int64!
 
   """Return total number of Team Collections in organization"""
-  teamCollectionsCount: Int!
+  teamCollectionsCount: Int64!
 
   """Return total number of Team Requests in organization"""
-  teamRequestsCount: Int!
+  teamRequestsCount: Int64!
 
   """Returns a list of all the shortcodes in the infra"""
   allShortcodes(
@@ -588,7 +595,7 @@ type Infra {
 
     """Users email to filter shortcodes by"""
     userEmail: String
-  ): [ShortcodeWithUserEmail!]!
+  ): [ShortcodeWithUserEmail!]! @goField(forceResolver: true)
 }
 
 type Shortcode {

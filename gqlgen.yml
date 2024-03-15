@@ -85,6 +85,10 @@ models:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
+  Int64:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int
 
   DateTime:
     model: graph.DateTimeScalar
@@ -171,3 +175,28 @@ models:
 
   InfraConfig:
     model: model.InfraConfig
+
+  Infra:
+    fields:
+      UserInfo:
+        resolver: true
+      AllUsers:
+        resolver: true
+      InvitedUsers:
+        resolver: true
+      AllTeams:
+        resolver: true
+      TeamInfo:
+        resolver: true
+      PendingInvitationCountInTeam:
+        resolver: true
+      AllShortcodes:
+        resolver: true
+      MembersCountInTeam:
+        resolver: true
+      CollectionCountInTeam:
+        resolver: true
+      RequestCountInTeam:
+        resolver: true
+      EnvironmentCountInTeam:
+        resolver: true

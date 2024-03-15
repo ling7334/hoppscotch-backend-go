@@ -7,12 +7,10 @@ import (
 	"context"
 	"dto"
 	"errors"
-	"encoding/json"
 	"fmt"
 	"io"
 	"model"
 	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -43,12 +41,15 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Infra() InfraResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Subscription() SubscriptionResolver
 	Team() TeamResolver
+	TeamRequest() TeamRequestResolver
 	User() UserResolver
 	UserCollection() UserCollectionResolver
+	UserRequest() UserRequestResolver
 }
 
 type DirectiveRoot struct {
@@ -302,7 +303,7 @@ type ComplexityRoot struct {
 		OwnersCount      func(childComplexity int) int
 		TeamEnvironments func(childComplexity int) int
 		TeamInvitations  func(childComplexity int) int
-		TeamMembers      func(childComplexity int) int
+		Teammembers      func(childComplexity int) int
 		ViewersCount     func(childComplexity int) int
 	}
 
@@ -438,6 +439,20 @@ type ComplexityRoot struct {
 	}
 }
 
+type InfraResolver interface {
+	UserInfo(ctx context.Context, obj *dto.Infra, userUID string) (*model.User, error)
+	AllUsers(ctx context.Context, obj *dto.Infra, cursor *string, take *int) ([]*model.User, error)
+
+	AllTeams(ctx context.Context, obj *dto.Infra, cursor *string, take *int) ([]*model.Team, error)
+	TeamInfo(ctx context.Context, obj *dto.Infra, teamID string) (*model.Team, error)
+	MembersCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (int64, error)
+	CollectionCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (int64, error)
+	RequestCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (int64, error)
+	EnvironmentCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) (int64, error)
+	PendingInvitationCountInTeam(ctx context.Context, obj *dto.Infra, teamID string) ([]*model.TeamInvitation, error)
+
+	AllShortcodes(ctx context.Context, obj *dto.Infra, cursor *string, take *int, userEmail *string) ([]*dto.ShortcodeWithUserEmail, error)
+}
 type MutationResolver interface {
 	UpdateUserSessions(ctx context.Context, currentSession string, sessionType model.ReqType) (*model.User, error)
 	DeleteUser(ctx context.Context) (bool, error)
@@ -587,13 +602,17 @@ type SubscriptionResolver interface {
 	UserCollectionOrderUpdated(ctx context.Context) (<-chan *dto.UserCollectionReorderData, error)
 }
 type TeamResolver interface {
-	TeamMembers(ctx context.Context, obj *model.Team) ([]*model.TeamMember, error)
+	Members(ctx context.Context, obj *model.Team, cursor *string) ([]*model.TeamMember, error)
+
 	MyRole(ctx context.Context, obj *model.Team) (*model.TeamMemberRole, error)
 	OwnersCount(ctx context.Context, obj *model.Team) (int64, error)
 	EditorsCount(ctx context.Context, obj *model.Team) (int64, error)
 	ViewersCount(ctx context.Context, obj *model.Team) (int64, error)
 	TeamInvitations(ctx context.Context, obj *model.Team) ([]*model.TeamInvitation, error)
 	TeamEnvironments(ctx context.Context, obj *model.Team) ([]*model.TeamEnvironment, error)
+}
+type TeamRequestResolver interface {
+	Request(ctx context.Context, obj *model.TeamRequest) (string, error)
 }
 type UserResolver interface {
 	GlobalEnvironments(ctx context.Context, obj *model.User) (*model.UserEnvironment, error)
@@ -603,6 +622,9 @@ type UserResolver interface {
 type UserCollectionResolver interface {
 	ChildrenRest(ctx context.Context, obj *model.UserCollection, cursor *string, take *int) ([]*model.UserCollection, error)
 	ChildrenGql(ctx context.Context, obj *model.UserCollection, cursor *string, take *int) ([]*model.UserCollection, error)
+}
+type UserRequestResolver interface {
+	Request(ctx context.Context, obj *model.UserRequest) (string, error)
 }
 
 type executableSchema struct {
@@ -2731,11 +2753,11 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Team.TeamInvitations(childComplexity), true
 
 	case "Team.teamMembers":
-		if e.complexity.Team.TeamMembers == nil {
+		if e.complexity.Team.Teammembers == nil {
 			break
 		}
 
-		return e.complexity.Team.TeamMembers(childComplexity), true
+		return e.complexity.Team.Teammembers(childComplexity), true
 
 	case "Team.viewersCount":
 		if e.complexity.Team.ViewersCount == nil {
@@ -3481,7 +3503,12 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../../api/graphql/schema.graphqls", Input: `directive @isLogin on FIELD_DEFINITION
+	{Name: "../../api/graphql/schema.graphqls", Input: `directive @goField(
+	forceResolver: Boolean
+	name: String
+	omittable: Boolean
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+directive @isLogin on FIELD_DEFINITION
 directive @isAdmin on FIELD_DEFINITION
 
 type User {
@@ -3713,6 +3740,8 @@ type UserHistoryDeletedManyData {
   reqType: ReqType!
 }
 
+scalar Int64
+
 type Team {
   """ID of the team"""
   id: ID!
@@ -3733,13 +3762,13 @@ type Team {
   myRole: TeamMemberRole
 
   """The number of users with the OWNER role in the team"""
-  ownersCount: Int!
+  ownersCount: Int64!
 
   """The number of users with the EDITOR role in the team"""
-  editorsCount: Int!
+  editorsCount: Int64!
 
   """The number of users with the VIEWER role in the team"""
-  viewersCount: Int!
+  viewersCount: Int64!
 
   """Get all the active invites in the team"""
   teamInvitations: [TeamInvitation!]!
@@ -3990,7 +4019,7 @@ type Infra {
   userInfo(
     """The user UID"""
     userUid: ID!
-  ): User!
+  ): User! @goField(forceResolver: true)
 
   """Returns a list of all the users in infra"""
   allUsers(
@@ -3999,7 +4028,7 @@ type Infra {
 
     """Number of items to fetch"""
     take: Int = 10
-  ): [User!]!
+  ): [User!]! @goField(forceResolver: true)
 
   """Returns a list of all the invited users"""
   invitedUsers: [InvitedUser!]!
@@ -4011,55 +4040,55 @@ type Infra {
 
     """Number of items to fetch"""
     take: Int = 10
-  ): [Team!]!
+  ): [Team!]! @goField(forceResolver: true)
 
   """Returns a team info by ID when requested by Admin"""
   teamInfo(
     """Team ID for which info to fetch"""
     teamID: ID!
-  ): Team!
+  ): Team! @goField(forceResolver: true)
 
   """Return count of all the members in a team"""
   membersCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): Int!
+  ): Int64! @goField(forceResolver: true)
 
   """Return count of all the stored collections in a team"""
   collectionCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): Int!
+  ): Int64! @goField(forceResolver: true)
 
   """Return count of all the stored requests in a team"""
   requestCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): Int!
+  ): Int64! @goField(forceResolver: true)
 
   """Return count of all the stored environments in a team"""
   environmentCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): Int!
+  ): Int64! @goField(forceResolver: true)
 
   """Return all the pending invitations in a team"""
   pendingInvitationCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): [TeamInvitation!]!
+  ): [TeamInvitation!]! @goField(forceResolver: true)
 
   """Return total number of Users in organization"""
-  usersCount: Int!
+  usersCount: Int64!
 
   """Return total number of Teams in organization"""
-  teamsCount: Int!
+  teamsCount: Int64!
 
   """Return total number of Team Collections in organization"""
-  teamCollectionsCount: Int!
+  teamCollectionsCount: Int64!
 
   """Return total number of Team Requests in organization"""
-  teamRequestsCount: Int!
+  teamRequestsCount: Int64!
 
   """Returns a list of all the shortcodes in the infra"""
   allShortcodes(
@@ -4071,7 +4100,7 @@ type Infra {
 
     """Users email to filter shortcodes by"""
     userEmail: String
-  ): [ShortcodeWithUserEmail!]!
+  ): [ShortcodeWithUserEmail!]! @goField(forceResolver: true)
 }
 
 type Shortcode {
@@ -9615,7 +9644,7 @@ func (ec *executionContext) _Infra_userInfo(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UserInfo, nil
+		return ec.resolvers.Infra().UserInfo(rctx, obj, fc.Args["userUid"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9636,8 +9665,8 @@ func (ec *executionContext) fieldContext_Infra_userInfo(ctx context.Context, fie
 	fc = &graphql.FieldContext{
 		Object:     "Infra",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "uid":
@@ -9698,7 +9727,7 @@ func (ec *executionContext) _Infra_allUsers(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AllUsers, nil
+		return ec.resolvers.Infra().AllUsers(rctx, obj, fc.Args["cursor"].(*string), fc.Args["take"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9719,8 +9748,8 @@ func (ec *executionContext) fieldContext_Infra_allUsers(ctx context.Context, fie
 	fc = &graphql.FieldContext{
 		Object:     "Infra",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "uid":
@@ -9835,7 +9864,7 @@ func (ec *executionContext) _Infra_allTeams(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AllTeams, nil
+		return ec.resolvers.Infra().AllTeams(rctx, obj, fc.Args["cursor"].(*string), fc.Args["take"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9856,8 +9885,8 @@ func (ec *executionContext) fieldContext_Infra_allTeams(ctx context.Context, fie
 	fc = &graphql.FieldContext{
 		Object:     "Infra",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -9912,7 +9941,7 @@ func (ec *executionContext) _Infra_teamInfo(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TeamInfo, nil
+		return ec.resolvers.Infra().TeamInfo(rctx, obj, fc.Args["teamID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9933,8 +9962,8 @@ func (ec *executionContext) fieldContext_Infra_teamInfo(ctx context.Context, fie
 	fc = &graphql.FieldContext{
 		Object:     "Infra",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -9989,7 +10018,7 @@ func (ec *executionContext) _Infra_membersCountInTeam(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.MembersCountInTeam, nil
+		return ec.resolvers.Infra().MembersCountInTeam(rctx, obj, fc.Args["teamID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10001,19 +10030,19 @@ func (ec *executionContext) _Infra_membersCountInTeam(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Infra_membersCountInTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Infra",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	defer func() {
@@ -10044,7 +10073,7 @@ func (ec *executionContext) _Infra_collectionCountInTeam(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CollectionCountInTeam, nil
+		return ec.resolvers.Infra().CollectionCountInTeam(rctx, obj, fc.Args["teamID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10056,19 +10085,19 @@ func (ec *executionContext) _Infra_collectionCountInTeam(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Infra_collectionCountInTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Infra",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	defer func() {
@@ -10099,7 +10128,7 @@ func (ec *executionContext) _Infra_requestCountInTeam(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.RequestCountInTeam, nil
+		return ec.resolvers.Infra().RequestCountInTeam(rctx, obj, fc.Args["teamID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10111,19 +10140,19 @@ func (ec *executionContext) _Infra_requestCountInTeam(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Infra_requestCountInTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Infra",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	defer func() {
@@ -10154,7 +10183,7 @@ func (ec *executionContext) _Infra_environmentCountInTeam(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.EnvironmentCountInTeam, nil
+		return ec.resolvers.Infra().EnvironmentCountInTeam(rctx, obj, fc.Args["teamID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10166,19 +10195,19 @@ func (ec *executionContext) _Infra_environmentCountInTeam(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Infra_environmentCountInTeam(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Infra",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	defer func() {
@@ -10209,7 +10238,7 @@ func (ec *executionContext) _Infra_pendingInvitationCountInTeam(ctx context.Cont
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.PendingInvitationCountInTeam, nil
+		return ec.resolvers.Infra().PendingInvitationCountInTeam(rctx, obj, fc.Args["teamID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10230,8 +10259,8 @@ func (ec *executionContext) fieldContext_Infra_pendingInvitationCountInTeam(ctx 
 	fc = &graphql.FieldContext{
 		Object:     "Infra",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -10294,7 +10323,7 @@ func (ec *executionContext) _Infra_usersCount(ctx context.Context, field graphql
 	}
 	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Infra_usersCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -10304,7 +10333,7 @@ func (ec *executionContext) fieldContext_Infra_usersCount(ctx context.Context, f
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10338,7 +10367,7 @@ func (ec *executionContext) _Infra_teamsCount(ctx context.Context, field graphql
 	}
 	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Infra_teamsCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -10348,7 +10377,7 @@ func (ec *executionContext) fieldContext_Infra_teamsCount(ctx context.Context, f
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10382,7 +10411,7 @@ func (ec *executionContext) _Infra_teamCollectionsCount(ctx context.Context, fie
 	}
 	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Infra_teamCollectionsCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -10392,7 +10421,7 @@ func (ec *executionContext) fieldContext_Infra_teamCollectionsCount(ctx context.
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10426,7 +10455,7 @@ func (ec *executionContext) _Infra_teamRequestsCount(ctx context.Context, field 
 	}
 	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Infra_teamRequestsCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -10436,7 +10465,7 @@ func (ec *executionContext) fieldContext_Infra_teamRequestsCount(ctx context.Con
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10456,7 +10485,7 @@ func (ec *executionContext) _Infra_allShortcodes(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AllShortcodes, nil
+		return ec.resolvers.Infra().AllShortcodes(rctx, obj, fc.Args["cursor"].(*string), fc.Args["take"].(*int), fc.Args["userEmail"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10477,8 +10506,8 @@ func (ec *executionContext) fieldContext_Infra_allShortcodes(ctx context.Context
 	fc = &graphql.FieldContext{
 		Object:     "Infra",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -21268,7 +21297,7 @@ func (ec *executionContext) _Team_members(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Teammembers, nil
+		return ec.resolvers.Team().Members(rctx, obj, fc.Args["cursor"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21280,17 +21309,17 @@ func (ec *executionContext) _Team_members(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.TeamMember)
+	res := resTmp.([]*model.TeamMember)
 	fc.Result = res
-	return ec.marshalNTeamMember2ᚕmodelᚐTeamMemberᚄ(ctx, field.Selections, res)
+	return ec.marshalNTeamMember2ᚕᚖmodelᚐTeamMemberᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Team_members(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Team",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "membershipID":
@@ -21331,7 +21360,7 @@ func (ec *executionContext) _Team_teamMembers(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Team().TeamMembers(rctx, obj)
+		return obj.Teammembers, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21343,17 +21372,17 @@ func (ec *executionContext) _Team_teamMembers(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.TeamMember)
+	res := resTmp.([]model.TeamMember)
 	fc.Result = res
-	return ec.marshalNTeamMember2ᚕᚖmodelᚐTeamMemberᚄ(ctx, field.Selections, res)
+	return ec.marshalNTeamMember2ᚕmodelᚐTeamMemberᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Team_teamMembers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Team",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "membershipID":
@@ -21438,7 +21467,7 @@ func (ec *executionContext) _Team_ownersCount(ctx context.Context, field graphql
 	}
 	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Team_ownersCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21448,7 +21477,7 @@ func (ec *executionContext) fieldContext_Team_ownersCount(ctx context.Context, f
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -21482,7 +21511,7 @@ func (ec *executionContext) _Team_editorsCount(ctx context.Context, field graphq
 	}
 	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Team_editorsCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21492,7 +21521,7 @@ func (ec *executionContext) fieldContext_Team_editorsCount(ctx context.Context, 
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -21526,7 +21555,7 @@ func (ec *executionContext) _Team_viewersCount(ctx context.Context, field graphq
 	}
 	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int64(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Team_viewersCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -21536,7 +21565,7 @@ func (ec *executionContext) fieldContext_Team_viewersCount(ctx context.Context, 
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -22860,11 +22889,7 @@ func (ec *executionContext) _TeamRequest_request(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		buffer := &bytes.Buffer{}
-		encoder := json.NewEncoder(buffer)
-		encoder.SetEscapeHTML(false)
-		err = encoder.Encode(obj.Request)
-		return strings.TrimRight(buffer.String(), "\n"), err
+		return ec.resolvers.TeamRequest().Request(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22885,8 +22910,8 @@ func (ec *executionContext) fieldContext_TeamRequest_request(ctx context.Context
 	fc = &graphql.FieldContext{
 		Object:     "TeamRequest",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -25296,11 +25321,7 @@ func (ec *executionContext) _UserRequest_request(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		buffer := &bytes.Buffer{}
-		encoder := json.NewEncoder(buffer)
-		encoder.SetEscapeHTML(false)
-		err = encoder.Encode(obj.Request)
-		return strings.TrimRight(buffer.String(), "\n"), err
+		return ec.resolvers.UserRequest().Request(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25321,8 +25342,8 @@ func (ec *executionContext) fieldContext_UserRequest_request(ctx context.Context
 	fc = &graphql.FieldContext{
 		Object:     "UserRequest",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -27887,88 +27908,398 @@ func (ec *executionContext) _Infra(ctx context.Context, sel ast.SelectionSet, ob
 		case "executedBy":
 			out.Values[i] = ec._Infra_executedBy(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "admins":
 			out.Values[i] = ec._Infra_admins(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "userInfo":
-			out.Values[i] = ec._Infra_userInfo(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Infra_userInfo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "allUsers":
-			out.Values[i] = ec._Infra_allUsers(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Infra_allUsers(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "invitedUsers":
 			out.Values[i] = ec._Infra_invitedUsers(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "allTeams":
-			out.Values[i] = ec._Infra_allTeams(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Infra_allTeams(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "teamInfo":
-			out.Values[i] = ec._Infra_teamInfo(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Infra_teamInfo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "membersCountInTeam":
-			out.Values[i] = ec._Infra_membersCountInTeam(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Infra_membersCountInTeam(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "collectionCountInTeam":
-			out.Values[i] = ec._Infra_collectionCountInTeam(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Infra_collectionCountInTeam(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "requestCountInTeam":
-			out.Values[i] = ec._Infra_requestCountInTeam(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Infra_requestCountInTeam(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "environmentCountInTeam":
-			out.Values[i] = ec._Infra_environmentCountInTeam(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Infra_environmentCountInTeam(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "pendingInvitationCountInTeam":
-			out.Values[i] = ec._Infra_pendingInvitationCountInTeam(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Infra_pendingInvitationCountInTeam(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "usersCount":
 			out.Values[i] = ec._Infra_usersCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "teamsCount":
 			out.Values[i] = ec._Infra_teamsCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "teamCollectionsCount":
 			out.Values[i] = ec._Infra_teamCollectionsCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "teamRequestsCount":
 			out.Values[i] = ec._Infra_teamRequestsCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "allShortcodes":
-			out.Values[i] = ec._Infra_allShortcodes(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Infra_allShortcodes(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -29523,11 +29854,6 @@ func (ec *executionContext) _Team(ctx context.Context, sel ast.SelectionSet, obj
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "members":
-			out.Values[i] = ec._Team_members(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "teamMembers":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -29536,7 +29862,7 @@ func (ec *executionContext) _Team(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Team_teamMembers(ctx, field, obj)
+				res = ec._Team_members(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -29563,6 +29889,11 @@ func (ec *executionContext) _Team(ctx context.Context, sel ast.SelectionSet, obj
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "teamMembers":
+			out.Values[i] = ec._Team_teamMembers(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "myRole":
 			field := field
 
@@ -30045,37 +30376,68 @@ func (ec *executionContext) _TeamRequest(ctx context.Context, sel ast.SelectionS
 		case "id":
 			out.Values[i] = ec._TeamRequest_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "collectionID":
 			out.Values[i] = ec._TeamRequest_collectionID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "teamID":
 			out.Values[i] = ec._TeamRequest_teamID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "request":
-			out.Values[i] = ec._TeamRequest_request(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TeamRequest_request(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "title":
 			out.Values[i] = ec._TeamRequest_title(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "team":
 			out.Values[i] = ec._TeamRequest_team(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "collection":
 			out.Values[i] = ec._TeamRequest_collection(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -30724,37 +31086,68 @@ func (ec *executionContext) _UserRequest(ctx context.Context, sel ast.SelectionS
 		case "id":
 			out.Values[i] = ec._UserRequest_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "collectionID":
 			out.Values[i] = ec._UserRequest_collectionID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "title":
 			out.Values[i] = ec._UserRequest_title(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "request":
-			out.Values[i] = ec._UserRequest_request(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserRequest_request(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "type":
 			out.Values[i] = ec._UserRequest_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "createdOn":
 			out.Values[i] = ec._UserRequest_createdOn(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "user":
 			out.Values[i] = ec._UserRequest_user(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -31486,7 +31879,12 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNInt2int64(ctx context.Context, sel ast.SelectionSet, v int64) graphql.Marshaler {
+func (ec *executionContext) unmarshalNInt642int64(ctx context.Context, v interface{}) (int64, error) {
+	res, err := graphql.UnmarshalInt64(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt642int64(ctx context.Context, sel ast.SelectionSet, v int64) graphql.Marshaler {
 	res := graphql.MarshalInt64(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
