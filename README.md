@@ -18,7 +18,7 @@ With the aim of reduce the image size and resource usage, I've taken up the chal
 - Easy Setup: Simple installation and configuration for a Hoppscotch-like experience.
 
 ## Demo
-[hoppscotch.ling.sh](httos://hoppscotch.ling.sh)
+https://hoppscotch.ling.sh
 
 ## Developing
 This project is build on `gqlgen` and `gorm`. please see related [documents](https://gqlgen.com/) for more information.
