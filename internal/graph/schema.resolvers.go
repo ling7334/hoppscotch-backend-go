@@ -67,7 +67,7 @@ func (r *infraResolver) TeamInfo(ctx context.Context, obj *dto.Infra, teamID str
 		fields = append(fields, val.Type().Field(i).Name)
 	}
 	db := GetPreloadedDB(r.DB, ctx, fields...)
-	if err := db.Where(`"id"=?`, teamID).First(&team).Error; err != nil {
+	if err := db.Preload("Teammembers.User").Where(`"id"=?`, teamID).First(&team).Error; err != nil {
 		return nil, err
 	}
 	return &team, nil
