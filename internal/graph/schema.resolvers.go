@@ -116,7 +116,10 @@ func (r *infraResolver) AllShortcodes(ctx context.Context, obj *dto.Infra, curso
 	}
 	db := GetPreloadedDB(r.DB, ctx)
 	var scs []*model.Shortcode
-	if err := db.Where(`"creatorUid"=? AND id > ?`, creator.UID, *cursor).Limit(getLimit(take)).Find(&scs).Error; err != nil {
+	if cursor != nil {
+		db = db.Where(`id > ?`, *cursor)
+	}
+	if err := db.Where(`"creatorUid"=?`, creator.UID).Limit(getLimit(take)).Find(&scs).Error; err != nil {
 		return nil, err
 	}
 	for _, s := range scs {
