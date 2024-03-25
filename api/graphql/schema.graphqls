@@ -652,37 +652,37 @@ type Query {
   me: User! @isLogin
 
   """Fetch details of the Infrastructure"""
-  infra: Infra!
+  infra: Infra! @isAdmin
 
   """Retrieve configuration details for the instance"""
   infraConfigs(
     """Configs to fetch"""
     configNames: [InfraConfigEnum!]!
-  ): [InfraConfig!]!
+  ): [InfraConfig!]! @isAdmin
 
   """Allowed Auth Provider list"""
-  allowedAuthProviders: [String!]!
+  allowedAuthProviders: [String!]! @isAdmin
 
   """Gives details of the admin executing this query"""
-  admin: Admin!
+  admin: Admin! @isAdmin
 
   """List of teams that the executing user belongs to."""
   myTeams(
     """The ID of the last returned team entry (used for pagination)"""
     cursor: ID
-  ): [Team!]!
+  ): [Team!]! @isLogin
 
   """Returns the detail of the team with the given ID"""
   team(
     """ID of the team to check"""
     teamID: ID!
-  ): Team
+  ): Team @isLogin
 
   """Gets the Team Invitation with the given ID, or null if not exists"""
   teamInvitation(
     """ID of the Team Invitation to lookup"""
     inviteID: ID!
-  ): TeamInvitation!
+  ): TeamInvitation! @isLogin
 
   """
   Returns the JSON string giving the collections and their contents of the team
@@ -690,7 +690,7 @@ type Query {
   exportCollectionsToJSON(
     """ID of the team"""
     teamID: ID!
-  ): String!
+  ): String! @isLogin
 
   """Returns the collections of a team"""
   rootCollectionsOfTeam(
@@ -702,13 +702,13 @@ type Query {
 
     """ID of the team"""
     teamID: ID!
-  ): [TeamCollection!]!
+  ): [TeamCollection!]! @isLogin
 
   """Get a Team Collection with ID or null (if not exists)"""
   collection(
     """ID of the collection"""
     collectionID: ID!
-  ): TeamCollection
+  ): TeamCollection @isLogin
 
   """Search the team for a specific request with title"""
   searchForRequest(
@@ -723,13 +723,13 @@ type Query {
 
     """The title to search for"""
     searchTerm: String!
-  ): [TeamRequest!]!
+  ): [TeamRequest!]! @isLogin
 
   """Gives a request with the given ID or null (if not exists)"""
   request(
     """ID of the request"""
     requestID: ID!
-  ): TeamRequest
+  ): TeamRequest @isLogin
 
   """Gives a paginated list of requests in the collection"""
   requestsInCollection(
@@ -741,13 +741,13 @@ type Query {
 
     """ID of the collection to look in"""
     collectionID: ID!
-  ): [TeamRequest!]!
+  ): [TeamRequest!]! @isLogin
 
   """Resolves and returns a shortcode data"""
   shortcode(
     """The shortcode to resolve"""
     code: ID!
-  ): Shortcode
+  ): Shortcode @isLogin
 
   """List all shortcodes the current user has generated"""
   myShortcodes(
@@ -756,7 +756,7 @@ type Query {
 
     """Number of items to fetch"""
     take: Int = 10
-  ): [Shortcode!]!
+  ): [Shortcode!]! @isLogin
 
   """Get REST user requests"""
   userRESTRequests(
@@ -768,7 +768,7 @@ type Query {
 
     """Collection ID of the user request"""
     collectionID: ID
-  ): [UserRequest!]!
+  ): [UserRequest!]! @isLogin
 
   """Get GraphQL user requests"""
   userGQLRequests(
@@ -780,13 +780,13 @@ type Query {
 
     """Collection ID of the user request"""
     collectionID: ID
-  ): [UserRequest!]!
+  ): [UserRequest!]! @isLogin
 
   """Get a user request by ID"""
   userRequest(
     """ID of the user request"""
     id: ID!
-  ): UserRequest!
+  ): UserRequest! @isLogin
 
   """Get the root REST user collections for a user"""
   rootRESTUserCollections(
@@ -795,7 +795,7 @@ type Query {
 
     """Number of items to fetch"""
     take: Int = 10
-  ): [UserCollection!]!
+  ): [UserCollection!]! @isLogin
 
   """Get the root GraphQL user collections for a user"""
   rootGQLUserCollections(
@@ -804,13 +804,13 @@ type Query {
 
     """Number of items to fetch"""
     take: Int = 10
-  ): [UserCollection!]!
+  ): [UserCollection!]! @isLogin
 
   """Get user collection with ID"""
   userCollection(
     """ID of the user collection"""
     userCollectionID: ID!
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """
   Returns the JSON string giving the collections and their contents of a user
@@ -821,7 +821,7 @@ type Query {
 
     """Type of the user collection"""
     collectionType: ReqType!
-  ): UserCollectionExportJSONData!
+  ): UserCollectionExportJSONData! @isLogin
 }
 
 enum InfraConfigEnum {
@@ -843,49 +843,49 @@ type Mutation {
 
     """Type of the session"""
     sessionType: SessionType!
-  ): User!
+  ): User! @isLogin
 
   """Delete an user account"""
-  deleteUser: Boolean!
+  deleteUser: Boolean! @isAdmin
 
   """Update Infra Configs"""
   updateInfraConfigs(
     """InfraConfigs to update"""
     infraConfigs: [InfraConfigArgs!]!
-  ): [InfraConfig!]!
+  ): [InfraConfig!]! @isAdmin
 
   """Reset Infra Configs with default values (.env)"""
-  resetInfraConfigs: Boolean!
+  resetInfraConfigs: Boolean! @isAdmin
 
   """Enable or Disable SSO for login/signup"""
   enableAndDisableSSO(
     """SSO provider and status"""
     providerInfo: [EnableAndDisableSSOArgs!]!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Invite a user to the infra using email"""
   inviteNewUser(
     """invitee email"""
     inviteeEmail: String!
-  ): InvitedUser!
+  ): InvitedUser! @isAdmin
 
   """Delete an user account from infra"""
   removeUserByAdmin(
     """users UID"""
     userUID: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Make user an admin"""
   makeUserAdmin(
     """users UID"""
     userUID: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Remove user as admin"""
   removeUserAsAdmin(
     """users UID"""
     userUID: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Create a new team by providing the user uid to nominate as Team owner"""
   createTeamByAdmin(
@@ -894,7 +894,7 @@ type Mutation {
 
     """Displayed name of the team"""
     name: String!
-  ): Team!
+  ): Team! @isAdmin
 
   """Change the role of a user in a team"""
   changeUserRoleInTeamByAdmin(
@@ -906,7 +906,7 @@ type Mutation {
 
     """updated team role"""
     newRole: TeamMemberRole!
-  ): TeamMember!
+  ): TeamMember! @isAdmin
 
   """Remove the user from a team"""
   removeUserFromTeamByAdmin(
@@ -915,7 +915,7 @@ type Mutation {
 
     """team ID"""
     teamID: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Add a user to a team with email and team member role"""
   addUserToTeamByAdmin(
@@ -927,7 +927,7 @@ type Mutation {
 
     """Email of the user to add to team"""
     userEmail: String!
-  ): TeamMember!
+  ): TeamMember! @isAdmin
 
   """Change a team name"""
   renameTeamByAdmin(
@@ -936,37 +936,37 @@ type Mutation {
 
     """The updated name of the team"""
     newName: String!
-  ): Team!
+  ): Team! @isAdmin
 
   """Delete a team"""
   deleteTeamByAdmin(
     """ID of the team"""
     teamID: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Revoke a team Invite by Invite ID"""
   revokeTeamInviteByAdmin(
     """Team Invite ID"""
     inviteID: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Revoke Shortcode by ID"""
   revokeShortcodeByAdmin(
     """The shortcode to delete"""
     code: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Creates a team owned by the executing user"""
   createTeam(
     """Displayed name of the team"""
     name: String!
-  ): Team!
+  ): Team! @isLogin
 
   """Leaves a team the executing user is a part of"""
   leaveTeam(
     """ID of the Team to leave"""
     teamID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Removes the team member from the team"""
   removeTeamMember(
@@ -975,7 +975,7 @@ type Mutation {
 
     """ID of the user to remove from the given team"""
     userUid: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Renames a team"""
   renameTeam(
@@ -984,13 +984,13 @@ type Mutation {
 
     """The updated name of the team"""
     newName: String!
-  ): Team!
+  ): Team! @isLogin
 
   """Deletes the team"""
   deleteTeam(
     """ID of the team"""
     teamID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Update role of a team member the executing user owns"""
   updateTeamMemberRole(
@@ -1002,7 +1002,7 @@ type Mutation {
 
     """Updated role value"""
     newRole: TeamMemberRole!
-  ): TeamMember!
+  ): TeamMember! @isLogin
 
   """Creates a Team Invitation"""
   createTeamInvitation(
@@ -1014,19 +1014,19 @@ type Mutation {
 
     """Role to be given to the user"""
     inviteeRole: TeamMemberRole!
-  ): TeamInvitation!
+  ): TeamInvitation! @isLogin
 
   """Revokes an invitation and deletes it"""
   revokeTeamInvitation(
     """ID of the invite to revoke"""
     inviteID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Accept an Invitation"""
   acceptTeamInvitation(
     """ID of the Invite to accept"""
     inviteID: ID!
-  ): TeamMember!
+  ): TeamMember! @isLogin
 
   """Create a new Team Environment for given Team ID"""
   createTeamEnvironment(
@@ -1038,13 +1038,13 @@ type Mutation {
 
     """JSON string of the variables object"""
     variables: String!
-  ): TeamEnvironment!
+  ): TeamEnvironment! @isLogin
 
   """Delete a Team Environment for given Team ID"""
   deleteTeamEnvironment(
     """ID of the Team Environment"""
     id: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """
   Add/Edit a single environment variable or variables to a Team Environment
@@ -1058,19 +1058,19 @@ type Mutation {
 
     """JSON string of the variables object"""
     variables: String!
-  ): TeamEnvironment!
+  ): TeamEnvironment! @isLogin
 
   """Delete all variables from a Team Environment"""
   deleteAllVariablesFromTeamEnvironment(
     """ID of the Team Environment"""
     id: ID!
-  ): TeamEnvironment!
+  ): TeamEnvironment! @isLogin
 
   """Create a duplicate of an existing environment"""
   createDuplicateEnvironment(
     """ID of the Team Environment"""
     id: ID!
-  ): TeamEnvironment!
+  ): TeamEnvironment! @isLogin
 
   """
   Creates a collection at the root of the team hierarchy (no parent collection)
@@ -1084,7 +1084,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): TeamCollection!
+  ): TeamCollection! @isLogin
 
   """Import collections from JSON string to the specified Team"""
   importCollectionsFromJSON(
@@ -1098,7 +1098,7 @@ type Mutation {
     ID to the collection to which to import to (null if to import to the root of team)
     """
     parentCollectionID: ID
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """
   Replace existing collections of a specific team with collections in JSON string
@@ -1114,7 +1114,7 @@ type Mutation {
     ID to the collection to which to import to (null if to import to the root of team)
     """
     parentCollectionID: ID
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Create a collection that has a parent collection"""
   createChildCollection(
@@ -1126,7 +1126,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): TeamCollection!
+  ): TeamCollection! @isLogin
 
   """Rename a collection"""
   renameCollection(
@@ -1141,7 +1141,7 @@ type Mutation {
   deleteCollection(
     """ID of the collection"""
     collectionID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Move a collection into a new parent collection or the root of the team"""
   moveCollection(
@@ -1150,7 +1150,7 @@ type Mutation {
 
     """ID of the collection"""
     collectionID: ID!
-  ): TeamCollection!
+  ): TeamCollection! @isLogin
 
   """Update the order of collections"""
   updateCollectionOrder(
@@ -1161,7 +1161,7 @@ type Mutation {
     ID of the collection that comes after the updated collection in its new position
     """
     destCollID: ID
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Update Team Collection details"""
   updateTeamCollection(
@@ -1173,7 +1173,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): TeamCollection!
+  ): TeamCollection! @isLogin
 
   """Create a team request in the given collection."""
   createRequestInCollection(
@@ -1182,7 +1182,7 @@ type Mutation {
 
     """The request data (stringified JSON of Hoppscotch request object)"""
     data: CreateTeamRequestInput!
-  ): TeamRequest!
+  ): TeamRequest! @isLogin
 
   """Update a request with the given ID"""
   updateRequest(
@@ -1193,13 +1193,13 @@ type Mutation {
     The updated request data (stringified JSON of Hoppscotch request object)
     """
     data: UpdateTeamRequestInput!
-  ): TeamRequest!
+  ): TeamRequest! @isLogin
 
   """Delete a request with the given ID"""
   deleteRequest(
     """ID of the request"""
     requestID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Update the order of requests in the lookup table"""
   updateLookUpRequestOrder(
@@ -1213,7 +1213,7 @@ type Mutation {
 
     """ID of the request to move"""
     requestID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Move a request to the given collection"""
   moveRequest(
@@ -1230,7 +1230,7 @@ type Mutation {
     ID of the request that comes after the updated request in its new position
     """
     nextRequestID: ID
-  ): TeamRequest!
+  ): TeamRequest! @isLogin
 
   """Create a shortcode for the given request."""
   createShortcode(
@@ -1239,7 +1239,7 @@ type Mutation {
 
     """JSON string of the properties of the embed"""
     properties: String
-  ): Shortcode!
+  ): Shortcode! @isLogin
 
   """Update a user generated Shortcode"""
   updateEmbedProperties(
@@ -1248,25 +1248,25 @@ type Mutation {
 
     """JSON string of the properties of the embed"""
     properties: String!
-  ): Shortcode!
+  ): Shortcode! @isLogin
 
   """Revoke a user generated shortcode"""
   revokeShortcode(
     """The shortcode to remove"""
     code: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Creates a new user setting"""
   createUserSettings(
     """Stringified JSON settings object"""
     properties: String!
-  ): UserSettings!
+  ): UserSettings! @isLogin
 
   """Update user setting for a given user"""
   updateUserSettings(
     """Stringified JSON settings object"""
     properties: String!
-  ): UserSettings!
+  ): UserSettings! @isLogin
 
   """Create a new personal user environment for given user uid"""
   createUserEnvironment(
@@ -1275,13 +1275,13 @@ type Mutation {
 
     """JSON string of the variables object"""
     variables: String!
-  ): UserEnvironment!
+  ): UserEnvironment! @isLogin
 
   """Create a new global user environment for given user uid"""
   createUserGlobalEnvironment(
     """JSON string of the variables object"""
     variables: String!
-  ): UserEnvironment!
+  ): UserEnvironment! @isLogin
 
   """Updates a users personal or global environment"""
   updateUserEnvironment(
@@ -1293,22 +1293,22 @@ type Mutation {
 
     """JSON string of the variables object"""
     variables: String!
-  ): UserEnvironment!
+  ): UserEnvironment! @isLogin
 
   """Deletes a users personal environment"""
   deleteUserEnvironment(
     """ID of the user environment"""
     id: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Deletes all of users personal environments"""
-  deleteUserEnvironments: Int!
+  deleteUserEnvironments: Int! @isLogin
 
   """Deletes all variables inside a users global environment"""
   clearGlobalEnvironments(
     """ID of the users global environment"""
     id: ID!
-  ): UserEnvironment!
+  ): UserEnvironment! @isLogin
 
   """Adds a new REST/GQL request to user history"""
   createUserHistory(
@@ -1320,25 +1320,25 @@ type Mutation {
 
     """Request type, REST or GQL"""
     reqType: ReqType!
-  ): UserHistory!
+  ): UserHistory! @isLogin
 
   """Stars/Unstars a REST/GQL request in user history"""
   toggleHistoryStarStatus(
     """ID of User History"""
     id: ID!
-  ): UserHistory!
+  ): UserHistory! @isLogin
 
   """Removes a REST/GQL request from user history"""
   removeRequestFromHistory(
     """ID of User History"""
     id: ID!
-  ): UserHistory!
+  ): UserHistory! @isLogin
 
   """Deletes all REST/GQL history for a user based on Request type"""
   deleteAllUserHistory(
     """Request type, REST or GQL"""
     reqType: ReqType!
-  ): UserHistoryDeletedManyData!
+  ): UserHistoryDeletedManyData! @isLogin
 
   """Create a new user REST request"""
   createRESTUserRequest(
@@ -1350,7 +1350,7 @@ type Mutation {
 
     """content/body of the user request"""
     request: String!
-  ): UserRequest!
+  ): UserRequest! @isLogin
 
   """Create a new user GraphQL request"""
   createGQLUserRequest(
@@ -1362,7 +1362,7 @@ type Mutation {
 
     """content/body of the user request"""
     request: String!
-  ): UserRequest!
+  ): UserRequest! @isLogin
 
   """Update a user REST request"""
   updateRESTUserRequest(
@@ -1374,7 +1374,7 @@ type Mutation {
 
     """content/body of the user request"""
     request: String
-  ): UserRequest!
+  ): UserRequest! @isLogin
 
   """Update a user GraphQL request"""
   updateGQLUserRequest(
@@ -1386,13 +1386,13 @@ type Mutation {
 
     """content/body of the user request"""
     request: String
-  ): UserRequest!
+  ): UserRequest! @isLogin
 
   """Delete a user request"""
   deleteUserRequest(
     """ID of the user request"""
     id: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Move and re-order of a user request within same or across collection"""
   moveUserRequest(
@@ -1409,7 +1409,7 @@ type Mutation {
     ID of the request that comes after the updated request in its new position
     """
     nextRequestID: ID
-  ): UserRequest!
+  ): UserRequest! @isLogin
 
   """Creates root REST user collection(no parent user collection)"""
   createRESTRootUserCollection(
@@ -1418,7 +1418,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """Creates root GraphQL user collection(no parent user collection)"""
   createGQLRootUserCollection(
@@ -1427,7 +1427,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """Creates a new child GraphQL user collection"""
   createGQLChildUserCollection(
@@ -1439,7 +1439,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """Creates a new child REST user collection"""
   createRESTChildUserCollection(
@@ -1451,7 +1451,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """Rename a user collection"""
   renameUserCollection(
@@ -1460,13 +1460,13 @@ type Mutation {
 
     """The updated title of the user collection"""
     newTitle: String!
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """Delete a user collection"""
   deleteUserCollection(
     """ID of the user collection"""
     userCollectionID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Move user collection into new parent or root"""
   moveUserCollection(
@@ -1475,7 +1475,7 @@ type Mutation {
 
     """ID of the collection"""
     userCollectionID: ID!
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """
   Update the order of UserCollections inside parent collection or in root
@@ -1486,7 +1486,7 @@ type Mutation {
 
     """ID of collection being moved"""
     nextCollectionID: ID
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Import collections from JSON string to the specified Team"""
   importUserCollectionsFromJSON(
@@ -1500,7 +1500,7 @@ type Mutation {
     ID to the collection to which to import into (null if to import into the root of the user)
     """
     parentCollectionID: ID
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Update a UserCollection"""
   updateUserCollection(
@@ -1512,7 +1512,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): UserCollection!
+  ): UserCollection! @isLogin
 }
 
 enum SessionType {

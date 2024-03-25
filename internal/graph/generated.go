@@ -4157,37 +4157,37 @@ type Query {
   me: User! @isLogin
 
   """Fetch details of the Infrastructure"""
-  infra: Infra!
+  infra: Infra! @isAdmin
 
   """Retrieve configuration details for the instance"""
   infraConfigs(
     """Configs to fetch"""
     configNames: [InfraConfigEnum!]!
-  ): [InfraConfig!]!
+  ): [InfraConfig!]! @isAdmin
 
   """Allowed Auth Provider list"""
-  allowedAuthProviders: [String!]!
+  allowedAuthProviders: [String!]! @isAdmin
 
   """Gives details of the admin executing this query"""
-  admin: Admin!
+  admin: Admin! @isAdmin
 
   """List of teams that the executing user belongs to."""
   myTeams(
     """The ID of the last returned team entry (used for pagination)"""
     cursor: ID
-  ): [Team!]!
+  ): [Team!]! @isLogin
 
   """Returns the detail of the team with the given ID"""
   team(
     """ID of the team to check"""
     teamID: ID!
-  ): Team
+  ): Team @isLogin
 
   """Gets the Team Invitation with the given ID, or null if not exists"""
   teamInvitation(
     """ID of the Team Invitation to lookup"""
     inviteID: ID!
-  ): TeamInvitation!
+  ): TeamInvitation! @isLogin
 
   """
   Returns the JSON string giving the collections and their contents of the team
@@ -4195,7 +4195,7 @@ type Query {
   exportCollectionsToJSON(
     """ID of the team"""
     teamID: ID!
-  ): String!
+  ): String! @isLogin
 
   """Returns the collections of a team"""
   rootCollectionsOfTeam(
@@ -4207,13 +4207,13 @@ type Query {
 
     """ID of the team"""
     teamID: ID!
-  ): [TeamCollection!]!
+  ): [TeamCollection!]! @isLogin
 
   """Get a Team Collection with ID or null (if not exists)"""
   collection(
     """ID of the collection"""
     collectionID: ID!
-  ): TeamCollection
+  ): TeamCollection @isLogin
 
   """Search the team for a specific request with title"""
   searchForRequest(
@@ -4228,13 +4228,13 @@ type Query {
 
     """The title to search for"""
     searchTerm: String!
-  ): [TeamRequest!]!
+  ): [TeamRequest!]! @isLogin
 
   """Gives a request with the given ID or null (if not exists)"""
   request(
     """ID of the request"""
     requestID: ID!
-  ): TeamRequest
+  ): TeamRequest @isLogin
 
   """Gives a paginated list of requests in the collection"""
   requestsInCollection(
@@ -4246,13 +4246,13 @@ type Query {
 
     """ID of the collection to look in"""
     collectionID: ID!
-  ): [TeamRequest!]!
+  ): [TeamRequest!]! @isLogin
 
   """Resolves and returns a shortcode data"""
   shortcode(
     """The shortcode to resolve"""
     code: ID!
-  ): Shortcode
+  ): Shortcode @isLogin
 
   """List all shortcodes the current user has generated"""
   myShortcodes(
@@ -4261,7 +4261,7 @@ type Query {
 
     """Number of items to fetch"""
     take: Int = 10
-  ): [Shortcode!]!
+  ): [Shortcode!]! @isLogin
 
   """Get REST user requests"""
   userRESTRequests(
@@ -4273,7 +4273,7 @@ type Query {
 
     """Collection ID of the user request"""
     collectionID: ID
-  ): [UserRequest!]!
+  ): [UserRequest!]! @isLogin
 
   """Get GraphQL user requests"""
   userGQLRequests(
@@ -4285,13 +4285,13 @@ type Query {
 
     """Collection ID of the user request"""
     collectionID: ID
-  ): [UserRequest!]!
+  ): [UserRequest!]! @isLogin
 
   """Get a user request by ID"""
   userRequest(
     """ID of the user request"""
     id: ID!
-  ): UserRequest!
+  ): UserRequest! @isLogin
 
   """Get the root REST user collections for a user"""
   rootRESTUserCollections(
@@ -4300,7 +4300,7 @@ type Query {
 
     """Number of items to fetch"""
     take: Int = 10
-  ): [UserCollection!]!
+  ): [UserCollection!]! @isLogin
 
   """Get the root GraphQL user collections for a user"""
   rootGQLUserCollections(
@@ -4309,13 +4309,13 @@ type Query {
 
     """Number of items to fetch"""
     take: Int = 10
-  ): [UserCollection!]!
+  ): [UserCollection!]! @isLogin
 
   """Get user collection with ID"""
   userCollection(
     """ID of the user collection"""
     userCollectionID: ID!
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """
   Returns the JSON string giving the collections and their contents of a user
@@ -4326,7 +4326,7 @@ type Query {
 
     """Type of the user collection"""
     collectionType: ReqType!
-  ): UserCollectionExportJSONData!
+  ): UserCollectionExportJSONData! @isLogin
 }
 
 enum InfraConfigEnum {
@@ -4348,49 +4348,49 @@ type Mutation {
 
     """Type of the session"""
     sessionType: SessionType!
-  ): User!
+  ): User! @isLogin
 
   """Delete an user account"""
-  deleteUser: Boolean!
+  deleteUser: Boolean! @isAdmin
 
   """Update Infra Configs"""
   updateInfraConfigs(
     """InfraConfigs to update"""
     infraConfigs: [InfraConfigArgs!]!
-  ): [InfraConfig!]!
+  ): [InfraConfig!]! @isAdmin
 
   """Reset Infra Configs with default values (.env)"""
-  resetInfraConfigs: Boolean!
+  resetInfraConfigs: Boolean! @isAdmin
 
   """Enable or Disable SSO for login/signup"""
   enableAndDisableSSO(
     """SSO provider and status"""
     providerInfo: [EnableAndDisableSSOArgs!]!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Invite a user to the infra using email"""
   inviteNewUser(
     """invitee email"""
     inviteeEmail: String!
-  ): InvitedUser!
+  ): InvitedUser! @isAdmin
 
   """Delete an user account from infra"""
   removeUserByAdmin(
     """users UID"""
     userUID: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Make user an admin"""
   makeUserAdmin(
     """users UID"""
     userUID: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Remove user as admin"""
   removeUserAsAdmin(
     """users UID"""
     userUID: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Create a new team by providing the user uid to nominate as Team owner"""
   createTeamByAdmin(
@@ -4399,7 +4399,7 @@ type Mutation {
 
     """Displayed name of the team"""
     name: String!
-  ): Team!
+  ): Team! @isAdmin
 
   """Change the role of a user in a team"""
   changeUserRoleInTeamByAdmin(
@@ -4411,7 +4411,7 @@ type Mutation {
 
     """updated team role"""
     newRole: TeamMemberRole!
-  ): TeamMember!
+  ): TeamMember! @isAdmin
 
   """Remove the user from a team"""
   removeUserFromTeamByAdmin(
@@ -4420,7 +4420,7 @@ type Mutation {
 
     """team ID"""
     teamID: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Add a user to a team with email and team member role"""
   addUserToTeamByAdmin(
@@ -4432,7 +4432,7 @@ type Mutation {
 
     """Email of the user to add to team"""
     userEmail: String!
-  ): TeamMember!
+  ): TeamMember! @isAdmin
 
   """Change a team name"""
   renameTeamByAdmin(
@@ -4441,37 +4441,37 @@ type Mutation {
 
     """The updated name of the team"""
     newName: String!
-  ): Team!
+  ): Team! @isAdmin
 
   """Delete a team"""
   deleteTeamByAdmin(
     """ID of the team"""
     teamID: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Revoke a team Invite by Invite ID"""
   revokeTeamInviteByAdmin(
     """Team Invite ID"""
     inviteID: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Revoke Shortcode by ID"""
   revokeShortcodeByAdmin(
     """The shortcode to delete"""
     code: ID!
-  ): Boolean!
+  ): Boolean! @isAdmin
 
   """Creates a team owned by the executing user"""
   createTeam(
     """Displayed name of the team"""
     name: String!
-  ): Team!
+  ): Team! @isLogin
 
   """Leaves a team the executing user is a part of"""
   leaveTeam(
     """ID of the Team to leave"""
     teamID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Removes the team member from the team"""
   removeTeamMember(
@@ -4480,7 +4480,7 @@ type Mutation {
 
     """ID of the user to remove from the given team"""
     userUid: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Renames a team"""
   renameTeam(
@@ -4489,13 +4489,13 @@ type Mutation {
 
     """The updated name of the team"""
     newName: String!
-  ): Team!
+  ): Team! @isLogin
 
   """Deletes the team"""
   deleteTeam(
     """ID of the team"""
     teamID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Update role of a team member the executing user owns"""
   updateTeamMemberRole(
@@ -4507,7 +4507,7 @@ type Mutation {
 
     """Updated role value"""
     newRole: TeamMemberRole!
-  ): TeamMember!
+  ): TeamMember! @isLogin
 
   """Creates a Team Invitation"""
   createTeamInvitation(
@@ -4519,19 +4519,19 @@ type Mutation {
 
     """Role to be given to the user"""
     inviteeRole: TeamMemberRole!
-  ): TeamInvitation!
+  ): TeamInvitation! @isLogin
 
   """Revokes an invitation and deletes it"""
   revokeTeamInvitation(
     """ID of the invite to revoke"""
     inviteID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Accept an Invitation"""
   acceptTeamInvitation(
     """ID of the Invite to accept"""
     inviteID: ID!
-  ): TeamMember!
+  ): TeamMember! @isLogin
 
   """Create a new Team Environment for given Team ID"""
   createTeamEnvironment(
@@ -4543,13 +4543,13 @@ type Mutation {
 
     """JSON string of the variables object"""
     variables: String!
-  ): TeamEnvironment!
+  ): TeamEnvironment! @isLogin
 
   """Delete a Team Environment for given Team ID"""
   deleteTeamEnvironment(
     """ID of the Team Environment"""
     id: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """
   Add/Edit a single environment variable or variables to a Team Environment
@@ -4563,19 +4563,19 @@ type Mutation {
 
     """JSON string of the variables object"""
     variables: String!
-  ): TeamEnvironment!
+  ): TeamEnvironment! @isLogin
 
   """Delete all variables from a Team Environment"""
   deleteAllVariablesFromTeamEnvironment(
     """ID of the Team Environment"""
     id: ID!
-  ): TeamEnvironment!
+  ): TeamEnvironment! @isLogin
 
   """Create a duplicate of an existing environment"""
   createDuplicateEnvironment(
     """ID of the Team Environment"""
     id: ID!
-  ): TeamEnvironment!
+  ): TeamEnvironment! @isLogin
 
   """
   Creates a collection at the root of the team hierarchy (no parent collection)
@@ -4589,7 +4589,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): TeamCollection!
+  ): TeamCollection! @isLogin
 
   """Import collections from JSON string to the specified Team"""
   importCollectionsFromJSON(
@@ -4603,7 +4603,7 @@ type Mutation {
     ID to the collection to which to import to (null if to import to the root of team)
     """
     parentCollectionID: ID
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """
   Replace existing collections of a specific team with collections in JSON string
@@ -4619,7 +4619,7 @@ type Mutation {
     ID to the collection to which to import to (null if to import to the root of team)
     """
     parentCollectionID: ID
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Create a collection that has a parent collection"""
   createChildCollection(
@@ -4631,7 +4631,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): TeamCollection!
+  ): TeamCollection! @isLogin
 
   """Rename a collection"""
   renameCollection(
@@ -4646,7 +4646,7 @@ type Mutation {
   deleteCollection(
     """ID of the collection"""
     collectionID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Move a collection into a new parent collection or the root of the team"""
   moveCollection(
@@ -4655,7 +4655,7 @@ type Mutation {
 
     """ID of the collection"""
     collectionID: ID!
-  ): TeamCollection!
+  ): TeamCollection! @isLogin
 
   """Update the order of collections"""
   updateCollectionOrder(
@@ -4666,7 +4666,7 @@ type Mutation {
     ID of the collection that comes after the updated collection in its new position
     """
     destCollID: ID
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Update Team Collection details"""
   updateTeamCollection(
@@ -4678,7 +4678,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): TeamCollection!
+  ): TeamCollection! @isLogin
 
   """Create a team request in the given collection."""
   createRequestInCollection(
@@ -4687,7 +4687,7 @@ type Mutation {
 
     """The request data (stringified JSON of Hoppscotch request object)"""
     data: CreateTeamRequestInput!
-  ): TeamRequest!
+  ): TeamRequest! @isLogin
 
   """Update a request with the given ID"""
   updateRequest(
@@ -4698,13 +4698,13 @@ type Mutation {
     The updated request data (stringified JSON of Hoppscotch request object)
     """
     data: UpdateTeamRequestInput!
-  ): TeamRequest!
+  ): TeamRequest! @isLogin
 
   """Delete a request with the given ID"""
   deleteRequest(
     """ID of the request"""
     requestID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Update the order of requests in the lookup table"""
   updateLookUpRequestOrder(
@@ -4718,7 +4718,7 @@ type Mutation {
 
     """ID of the request to move"""
     requestID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Move a request to the given collection"""
   moveRequest(
@@ -4735,7 +4735,7 @@ type Mutation {
     ID of the request that comes after the updated request in its new position
     """
     nextRequestID: ID
-  ): TeamRequest!
+  ): TeamRequest! @isLogin
 
   """Create a shortcode for the given request."""
   createShortcode(
@@ -4744,7 +4744,7 @@ type Mutation {
 
     """JSON string of the properties of the embed"""
     properties: String
-  ): Shortcode!
+  ): Shortcode! @isLogin
 
   """Update a user generated Shortcode"""
   updateEmbedProperties(
@@ -4753,25 +4753,25 @@ type Mutation {
 
     """JSON string of the properties of the embed"""
     properties: String!
-  ): Shortcode!
+  ): Shortcode! @isLogin
 
   """Revoke a user generated shortcode"""
   revokeShortcode(
     """The shortcode to remove"""
     code: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Creates a new user setting"""
   createUserSettings(
     """Stringified JSON settings object"""
     properties: String!
-  ): UserSettings!
+  ): UserSettings! @isLogin
 
   """Update user setting for a given user"""
   updateUserSettings(
     """Stringified JSON settings object"""
     properties: String!
-  ): UserSettings!
+  ): UserSettings! @isLogin
 
   """Create a new personal user environment for given user uid"""
   createUserEnvironment(
@@ -4780,13 +4780,13 @@ type Mutation {
 
     """JSON string of the variables object"""
     variables: String!
-  ): UserEnvironment!
+  ): UserEnvironment! @isLogin
 
   """Create a new global user environment for given user uid"""
   createUserGlobalEnvironment(
     """JSON string of the variables object"""
     variables: String!
-  ): UserEnvironment!
+  ): UserEnvironment! @isLogin
 
   """Updates a users personal or global environment"""
   updateUserEnvironment(
@@ -4798,22 +4798,22 @@ type Mutation {
 
     """JSON string of the variables object"""
     variables: String!
-  ): UserEnvironment!
+  ): UserEnvironment! @isLogin
 
   """Deletes a users personal environment"""
   deleteUserEnvironment(
     """ID of the user environment"""
     id: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Deletes all of users personal environments"""
-  deleteUserEnvironments: Int!
+  deleteUserEnvironments: Int! @isLogin
 
   """Deletes all variables inside a users global environment"""
   clearGlobalEnvironments(
     """ID of the users global environment"""
     id: ID!
-  ): UserEnvironment!
+  ): UserEnvironment! @isLogin
 
   """Adds a new REST/GQL request to user history"""
   createUserHistory(
@@ -4825,25 +4825,25 @@ type Mutation {
 
     """Request type, REST or GQL"""
     reqType: ReqType!
-  ): UserHistory!
+  ): UserHistory! @isLogin
 
   """Stars/Unstars a REST/GQL request in user history"""
   toggleHistoryStarStatus(
     """ID of User History"""
     id: ID!
-  ): UserHistory!
+  ): UserHistory! @isLogin
 
   """Removes a REST/GQL request from user history"""
   removeRequestFromHistory(
     """ID of User History"""
     id: ID!
-  ): UserHistory!
+  ): UserHistory! @isLogin
 
   """Deletes all REST/GQL history for a user based on Request type"""
   deleteAllUserHistory(
     """Request type, REST or GQL"""
     reqType: ReqType!
-  ): UserHistoryDeletedManyData!
+  ): UserHistoryDeletedManyData! @isLogin
 
   """Create a new user REST request"""
   createRESTUserRequest(
@@ -4855,7 +4855,7 @@ type Mutation {
 
     """content/body of the user request"""
     request: String!
-  ): UserRequest!
+  ): UserRequest! @isLogin
 
   """Create a new user GraphQL request"""
   createGQLUserRequest(
@@ -4867,7 +4867,7 @@ type Mutation {
 
     """content/body of the user request"""
     request: String!
-  ): UserRequest!
+  ): UserRequest! @isLogin
 
   """Update a user REST request"""
   updateRESTUserRequest(
@@ -4879,7 +4879,7 @@ type Mutation {
 
     """content/body of the user request"""
     request: String
-  ): UserRequest!
+  ): UserRequest! @isLogin
 
   """Update a user GraphQL request"""
   updateGQLUserRequest(
@@ -4891,13 +4891,13 @@ type Mutation {
 
     """content/body of the user request"""
     request: String
-  ): UserRequest!
+  ): UserRequest! @isLogin
 
   """Delete a user request"""
   deleteUserRequest(
     """ID of the user request"""
     id: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Move and re-order of a user request within same or across collection"""
   moveUserRequest(
@@ -4914,7 +4914,7 @@ type Mutation {
     ID of the request that comes after the updated request in its new position
     """
     nextRequestID: ID
-  ): UserRequest!
+  ): UserRequest! @isLogin
 
   """Creates root REST user collection(no parent user collection)"""
   createRESTRootUserCollection(
@@ -4923,7 +4923,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """Creates root GraphQL user collection(no parent user collection)"""
   createGQLRootUserCollection(
@@ -4932,7 +4932,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """Creates a new child GraphQL user collection"""
   createGQLChildUserCollection(
@@ -4944,7 +4944,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """Creates a new child REST user collection"""
   createRESTChildUserCollection(
@@ -4956,7 +4956,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """Rename a user collection"""
   renameUserCollection(
@@ -4965,13 +4965,13 @@ type Mutation {
 
     """The updated title of the user collection"""
     newTitle: String!
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """Delete a user collection"""
   deleteUserCollection(
     """ID of the user collection"""
     userCollectionID: ID!
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Move user collection into new parent or root"""
   moveUserCollection(
@@ -4980,7 +4980,7 @@ type Mutation {
 
     """ID of the collection"""
     userCollectionID: ID!
-  ): UserCollection!
+  ): UserCollection! @isLogin
 
   """
   Update the order of UserCollections inside parent collection or in root
@@ -4991,7 +4991,7 @@ type Mutation {
 
     """ID of collection being moved"""
     nextCollectionID: ID
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Import collections from JSON string to the specified Team"""
   importUserCollectionsFromJSON(
@@ -5005,7 +5005,7 @@ type Mutation {
     ID to the collection to which to import into (null if to import into the root of the user)
     """
     parentCollectionID: ID
-  ): Boolean!
+  ): Boolean! @isLogin
 
   """Update a UserCollection"""
   updateUserCollection(
@@ -5017,7 +5017,7 @@ type Mutation {
 
     """JSON string representing the collection data"""
     data: String
-  ): UserCollection!
+  ): UserCollection! @isLogin
 }
 
 enum SessionType {
@@ -10815,8 +10815,28 @@ func (ec *executionContext) _Mutation_updateUserSessions(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserSessions(rctx, fc.Args["currentSession"].(string), fc.Args["sessionType"].(model.ReqType))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateUserSessions(rctx, fc.Args["currentSession"].(string), fc.Args["sessionType"].(model.ReqType))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10898,8 +10918,28 @@ func (ec *executionContext) _Mutation_deleteUser(ctx context.Context, field grap
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteUser(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteUser(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10942,8 +10982,28 @@ func (ec *executionContext) _Mutation_updateInfraConfigs(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateInfraConfigs(rctx, fc.Args["infraConfigs"].([]*dto.InfraConfigArgs))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateInfraConfigs(rctx, fc.Args["infraConfigs"].([]*dto.InfraConfigArgs))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.InfraConfig); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*model.InfraConfig`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11003,8 +11063,28 @@ func (ec *executionContext) _Mutation_resetInfraConfigs(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ResetInfraConfigs(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ResetInfraConfigs(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11047,8 +11127,28 @@ func (ec *executionContext) _Mutation_enableAndDisableSSO(ctx context.Context, f
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EnableAndDisableSso(rctx, fc.Args["providerInfo"].([]*dto.EnableAndDisableSSOArgs))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().EnableAndDisableSso(rctx, fc.Args["providerInfo"].([]*dto.EnableAndDisableSSOArgs))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11102,8 +11202,28 @@ func (ec *executionContext) _Mutation_inviteNewUser(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InviteNewUser(rctx, fc.Args["inviteeEmail"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().InviteNewUser(rctx, fc.Args["inviteeEmail"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.InvitedUser); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.InvitedUser`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11167,8 +11287,28 @@ func (ec *executionContext) _Mutation_removeUserByAdmin(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveUserByAdmin(rctx, fc.Args["userUID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RemoveUserByAdmin(rctx, fc.Args["userUID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11222,8 +11362,28 @@ func (ec *executionContext) _Mutation_makeUserAdmin(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MakeUserAdmin(rctx, fc.Args["userUID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().MakeUserAdmin(rctx, fc.Args["userUID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11277,8 +11437,28 @@ func (ec *executionContext) _Mutation_removeUserAsAdmin(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveUserAsAdmin(rctx, fc.Args["userUID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RemoveUserAsAdmin(rctx, fc.Args["userUID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11332,8 +11512,28 @@ func (ec *executionContext) _Mutation_createTeamByAdmin(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTeamByAdmin(rctx, fc.Args["userUid"].(string), fc.Args["name"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTeamByAdmin(rctx, fc.Args["userUid"].(string), fc.Args["name"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Team); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.Team`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11409,8 +11609,28 @@ func (ec *executionContext) _Mutation_changeUserRoleInTeamByAdmin(ctx context.Co
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ChangeUserRoleInTeamByAdmin(rctx, fc.Args["userUID"].(string), fc.Args["teamID"].(string), fc.Args["newRole"].(model.TeamMemberRole))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ChangeUserRoleInTeamByAdmin(rctx, fc.Args["userUID"].(string), fc.Args["teamID"].(string), fc.Args["newRole"].(model.TeamMemberRole))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamMember); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamMember`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11472,8 +11692,28 @@ func (ec *executionContext) _Mutation_removeUserFromTeamByAdmin(ctx context.Cont
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveUserFromTeamByAdmin(rctx, fc.Args["userUid"].(string), fc.Args["teamID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RemoveUserFromTeamByAdmin(rctx, fc.Args["userUid"].(string), fc.Args["teamID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11527,8 +11767,28 @@ func (ec *executionContext) _Mutation_addUserToTeamByAdmin(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddUserToTeamByAdmin(rctx, fc.Args["teamID"].(string), fc.Args["role"].(model.TeamMemberRole), fc.Args["userEmail"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AddUserToTeamByAdmin(rctx, fc.Args["teamID"].(string), fc.Args["role"].(model.TeamMemberRole), fc.Args["userEmail"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamMember); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamMember`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11590,8 +11850,28 @@ func (ec *executionContext) _Mutation_renameTeamByAdmin(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RenameTeamByAdmin(rctx, fc.Args["teamID"].(string), fc.Args["newName"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RenameTeamByAdmin(rctx, fc.Args["teamID"].(string), fc.Args["newName"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Team); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.Team`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11667,8 +11947,28 @@ func (ec *executionContext) _Mutation_deleteTeamByAdmin(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTeamByAdmin(rctx, fc.Args["teamID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTeamByAdmin(rctx, fc.Args["teamID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11722,8 +12022,28 @@ func (ec *executionContext) _Mutation_revokeTeamInviteByAdmin(ctx context.Contex
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RevokeTeamInviteByAdmin(rctx, fc.Args["inviteID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RevokeTeamInviteByAdmin(rctx, fc.Args["inviteID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11777,8 +12097,28 @@ func (ec *executionContext) _Mutation_revokeShortcodeByAdmin(ctx context.Context
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RevokeShortcodeByAdmin(rctx, fc.Args["code"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RevokeShortcodeByAdmin(rctx, fc.Args["code"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11832,8 +12172,28 @@ func (ec *executionContext) _Mutation_createTeam(ctx context.Context, field grap
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTeam(rctx, fc.Args["name"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTeam(rctx, fc.Args["name"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Team); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.Team`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11909,8 +12269,28 @@ func (ec *executionContext) _Mutation_leaveTeam(ctx context.Context, field graph
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().LeaveTeam(rctx, fc.Args["teamID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().LeaveTeam(rctx, fc.Args["teamID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11964,8 +12344,28 @@ func (ec *executionContext) _Mutation_removeTeamMember(ctx context.Context, fiel
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveTeamMember(rctx, fc.Args["teamID"].(string), fc.Args["userUid"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RemoveTeamMember(rctx, fc.Args["teamID"].(string), fc.Args["userUid"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12019,8 +12419,28 @@ func (ec *executionContext) _Mutation_renameTeam(ctx context.Context, field grap
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RenameTeam(rctx, fc.Args["teamID"].(string), fc.Args["newName"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RenameTeam(rctx, fc.Args["teamID"].(string), fc.Args["newName"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Team); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.Team`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12096,8 +12516,28 @@ func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field grap
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTeam(rctx, fc.Args["teamID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTeam(rctx, fc.Args["teamID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12151,8 +12591,28 @@ func (ec *executionContext) _Mutation_updateTeamMemberRole(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTeamMemberRole(rctx, fc.Args["teamID"].(string), fc.Args["userUid"].(string), fc.Args["newRole"].(model.TeamMemberRole))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTeamMemberRole(rctx, fc.Args["teamID"].(string), fc.Args["userUid"].(string), fc.Args["newRole"].(model.TeamMemberRole))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamMember); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamMember`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12214,8 +12674,28 @@ func (ec *executionContext) _Mutation_createTeamInvitation(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTeamInvitation(rctx, fc.Args["teamID"].(string), fc.Args["inviteeEmail"].(string), fc.Args["inviteeRole"].(model.TeamMemberRole))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTeamInvitation(rctx, fc.Args["teamID"].(string), fc.Args["inviteeEmail"].(string), fc.Args["inviteeRole"].(model.TeamMemberRole))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamInvitation); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamInvitation`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12285,8 +12765,28 @@ func (ec *executionContext) _Mutation_revokeTeamInvitation(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RevokeTeamInvitation(rctx, fc.Args["inviteID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RevokeTeamInvitation(rctx, fc.Args["inviteID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12340,8 +12840,28 @@ func (ec *executionContext) _Mutation_acceptTeamInvitation(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AcceptTeamInvitation(rctx, fc.Args["inviteID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AcceptTeamInvitation(rctx, fc.Args["inviteID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamMember); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamMember`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12403,8 +12923,28 @@ func (ec *executionContext) _Mutation_createTeamEnvironment(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTeamEnvironment(rctx, fc.Args["name"].(string), fc.Args["teamID"].(string), fc.Args["variables"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTeamEnvironment(rctx, fc.Args["name"].(string), fc.Args["teamID"].(string), fc.Args["variables"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamEnvironment); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamEnvironment`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12468,8 +13008,28 @@ func (ec *executionContext) _Mutation_deleteTeamEnvironment(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTeamEnvironment(rctx, fc.Args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTeamEnvironment(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12523,8 +13083,28 @@ func (ec *executionContext) _Mutation_updateTeamEnvironment(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTeamEnvironment(rctx, fc.Args["id"].(string), fc.Args["name"].(string), fc.Args["variables"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTeamEnvironment(rctx, fc.Args["id"].(string), fc.Args["name"].(string), fc.Args["variables"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamEnvironment); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamEnvironment`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12588,8 +13168,28 @@ func (ec *executionContext) _Mutation_deleteAllVariablesFromTeamEnvironment(ctx 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteAllVariablesFromTeamEnvironment(rctx, fc.Args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteAllVariablesFromTeamEnvironment(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamEnvironment); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamEnvironment`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12653,8 +13253,28 @@ func (ec *executionContext) _Mutation_createDuplicateEnvironment(ctx context.Con
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateDuplicateEnvironment(rctx, fc.Args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateDuplicateEnvironment(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamEnvironment); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamEnvironment`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12718,8 +13338,28 @@ func (ec *executionContext) _Mutation_createRootCollection(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateRootCollection(rctx, fc.Args["teamID"].(string), fc.Args["title"].(string), fc.Args["data"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateRootCollection(rctx, fc.Args["teamID"].(string), fc.Args["title"].(string), fc.Args["data"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12789,8 +13429,28 @@ func (ec *executionContext) _Mutation_importCollectionsFromJSON(ctx context.Cont
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ImportCollectionsFromJSON(rctx, fc.Args["teamID"].(string), fc.Args["jsonString"].(string), fc.Args["parentCollectionID"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ImportCollectionsFromJSON(rctx, fc.Args["teamID"].(string), fc.Args["jsonString"].(string), fc.Args["parentCollectionID"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12844,8 +13504,28 @@ func (ec *executionContext) _Mutation_replaceCollectionsWithJSON(ctx context.Con
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ReplaceCollectionsWithJSON(rctx, fc.Args["teamID"].(string), fc.Args["jsonString"].(string), fc.Args["parentCollectionID"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ReplaceCollectionsWithJSON(rctx, fc.Args["teamID"].(string), fc.Args["jsonString"].(string), fc.Args["parentCollectionID"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12899,8 +13579,28 @@ func (ec *executionContext) _Mutation_createChildCollection(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateChildCollection(rctx, fc.Args["collectionID"].(string), fc.Args["childTitle"].(string), fc.Args["data"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateChildCollection(rctx, fc.Args["collectionID"].(string), fc.Args["childTitle"].(string), fc.Args["data"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13041,8 +13741,28 @@ func (ec *executionContext) _Mutation_deleteCollection(ctx context.Context, fiel
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteCollection(rctx, fc.Args["collectionID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteCollection(rctx, fc.Args["collectionID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13096,8 +13816,28 @@ func (ec *executionContext) _Mutation_moveCollection(ctx context.Context, field 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MoveCollection(rctx, fc.Args["parentCollectionID"].(*string), fc.Args["collectionID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().MoveCollection(rctx, fc.Args["parentCollectionID"].(*string), fc.Args["collectionID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13167,8 +13907,28 @@ func (ec *executionContext) _Mutation_updateCollectionOrder(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateCollectionOrder(rctx, fc.Args["collectionID"].(string), fc.Args["destCollID"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateCollectionOrder(rctx, fc.Args["collectionID"].(string), fc.Args["destCollID"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13222,8 +13982,28 @@ func (ec *executionContext) _Mutation_updateTeamCollection(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTeamCollection(rctx, fc.Args["collectionID"].(string), fc.Args["newTitle"].(*string), fc.Args["data"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTeamCollection(rctx, fc.Args["collectionID"].(string), fc.Args["newTitle"].(*string), fc.Args["data"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13293,8 +14073,28 @@ func (ec *executionContext) _Mutation_createRequestInCollection(ctx context.Cont
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateRequestInCollection(rctx, fc.Args["collectionID"].(string), fc.Args["data"].(dto.CreateTeamRequestInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateRequestInCollection(rctx, fc.Args["collectionID"].(string), fc.Args["data"].(dto.CreateTeamRequestInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13364,8 +14164,28 @@ func (ec *executionContext) _Mutation_updateRequest(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateRequest(rctx, fc.Args["requestID"].(string), fc.Args["data"].(dto.UpdateTeamRequestInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateRequest(rctx, fc.Args["requestID"].(string), fc.Args["data"].(dto.UpdateTeamRequestInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13435,8 +14255,28 @@ func (ec *executionContext) _Mutation_deleteRequest(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteRequest(rctx, fc.Args["requestID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteRequest(rctx, fc.Args["requestID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13490,8 +14330,28 @@ func (ec *executionContext) _Mutation_updateLookUpRequestOrder(ctx context.Conte
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateLookUpRequestOrder(rctx, fc.Args["collectionID"].(string), fc.Args["nextRequestID"].(*string), fc.Args["requestID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateLookUpRequestOrder(rctx, fc.Args["collectionID"].(string), fc.Args["nextRequestID"].(*string), fc.Args["requestID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13545,8 +14405,28 @@ func (ec *executionContext) _Mutation_moveRequest(ctx context.Context, field gra
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MoveRequest(rctx, fc.Args["srcCollID"].(*string), fc.Args["requestID"].(string), fc.Args["destCollID"].(string), fc.Args["nextRequestID"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().MoveRequest(rctx, fc.Args["srcCollID"].(*string), fc.Args["requestID"].(string), fc.Args["destCollID"].(string), fc.Args["nextRequestID"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13616,8 +14496,28 @@ func (ec *executionContext) _Mutation_createShortcode(ctx context.Context, field
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateShortcode(rctx, fc.Args["request"].(string), fc.Args["properties"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateShortcode(rctx, fc.Args["request"].(string), fc.Args["properties"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Shortcode); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.Shortcode`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13681,8 +14581,28 @@ func (ec *executionContext) _Mutation_updateEmbedProperties(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateEmbedProperties(rctx, fc.Args["code"].(string), fc.Args["properties"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateEmbedProperties(rctx, fc.Args["code"].(string), fc.Args["properties"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Shortcode); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.Shortcode`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13746,8 +14666,28 @@ func (ec *executionContext) _Mutation_revokeShortcode(ctx context.Context, field
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RevokeShortcode(rctx, fc.Args["code"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RevokeShortcode(rctx, fc.Args["code"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13801,8 +14741,28 @@ func (ec *executionContext) _Mutation_createUserSettings(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateUserSettings(rctx, fc.Args["properties"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateUserSettings(rctx, fc.Args["properties"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserSetting); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserSetting`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13866,8 +14826,28 @@ func (ec *executionContext) _Mutation_updateUserSettings(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserSettings(rctx, fc.Args["properties"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateUserSettings(rctx, fc.Args["properties"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserSetting); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserSetting`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13931,8 +14911,28 @@ func (ec *executionContext) _Mutation_createUserEnvironment(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateUserEnvironment(rctx, fc.Args["name"].(string), fc.Args["variables"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateUserEnvironment(rctx, fc.Args["name"].(string), fc.Args["variables"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserEnvironment); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserEnvironment`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13998,8 +14998,28 @@ func (ec *executionContext) _Mutation_createUserGlobalEnvironment(ctx context.Co
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateUserGlobalEnvironment(rctx, fc.Args["variables"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateUserGlobalEnvironment(rctx, fc.Args["variables"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserEnvironment); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserEnvironment`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14065,8 +15085,28 @@ func (ec *executionContext) _Mutation_updateUserEnvironment(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserEnvironment(rctx, fc.Args["id"].(string), fc.Args["name"].(string), fc.Args["variables"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateUserEnvironment(rctx, fc.Args["id"].(string), fc.Args["name"].(string), fc.Args["variables"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserEnvironment); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserEnvironment`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14132,8 +15172,28 @@ func (ec *executionContext) _Mutation_deleteUserEnvironment(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteUserEnvironment(rctx, fc.Args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteUserEnvironment(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14187,8 +15247,28 @@ func (ec *executionContext) _Mutation_deleteUserEnvironments(ctx context.Context
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteUserEnvironments(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteUserEnvironments(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(int); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be int`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14231,8 +15311,28 @@ func (ec *executionContext) _Mutation_clearGlobalEnvironments(ctx context.Contex
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ClearGlobalEnvironments(rctx, fc.Args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ClearGlobalEnvironments(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserEnvironment); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserEnvironment`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14298,8 +15398,28 @@ func (ec *executionContext) _Mutation_createUserHistory(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateUserHistory(rctx, fc.Args["reqData"].(string), fc.Args["resMetadata"].(string), fc.Args["reqType"].(model.ReqType))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateUserHistory(rctx, fc.Args["reqData"].(string), fc.Args["resMetadata"].(string), fc.Args["reqType"].(model.ReqType))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserHistory); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserHistory`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14369,8 +15489,28 @@ func (ec *executionContext) _Mutation_toggleHistoryStarStatus(ctx context.Contex
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ToggleHistoryStarStatus(rctx, fc.Args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ToggleHistoryStarStatus(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserHistory); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserHistory`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14440,8 +15580,28 @@ func (ec *executionContext) _Mutation_removeRequestFromHistory(ctx context.Conte
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveRequestFromHistory(rctx, fc.Args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RemoveRequestFromHistory(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserHistory); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserHistory`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14511,8 +15671,28 @@ func (ec *executionContext) _Mutation_deleteAllUserHistory(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteAllUserHistory(rctx, fc.Args["reqType"].(model.ReqType))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteAllUserHistory(rctx, fc.Args["reqType"].(model.ReqType))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*dto.UserHistoryDeletedManyData); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *dto.UserHistoryDeletedManyData`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14572,8 +15752,28 @@ func (ec *executionContext) _Mutation_createRESTUserRequest(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateRESTUserRequest(rctx, fc.Args["collectionID"].(string), fc.Args["title"].(string), fc.Args["request"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateRESTUserRequest(rctx, fc.Args["collectionID"].(string), fc.Args["title"].(string), fc.Args["request"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14643,8 +15843,28 @@ func (ec *executionContext) _Mutation_createGQLUserRequest(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateGQLUserRequest(rctx, fc.Args["collectionID"].(string), fc.Args["title"].(string), fc.Args["request"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateGQLUserRequest(rctx, fc.Args["collectionID"].(string), fc.Args["title"].(string), fc.Args["request"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14714,8 +15934,28 @@ func (ec *executionContext) _Mutation_updateRESTUserRequest(ctx context.Context,
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateRESTUserRequest(rctx, fc.Args["id"].(string), fc.Args["title"].(*string), fc.Args["request"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateRESTUserRequest(rctx, fc.Args["id"].(string), fc.Args["title"].(*string), fc.Args["request"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14785,8 +16025,28 @@ func (ec *executionContext) _Mutation_updateGQLUserRequest(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateGQLUserRequest(rctx, fc.Args["id"].(string), fc.Args["title"].(*string), fc.Args["request"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateGQLUserRequest(rctx, fc.Args["id"].(string), fc.Args["title"].(*string), fc.Args["request"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14856,8 +16116,28 @@ func (ec *executionContext) _Mutation_deleteUserRequest(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteUserRequest(rctx, fc.Args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteUserRequest(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14911,8 +16191,28 @@ func (ec *executionContext) _Mutation_moveUserRequest(ctx context.Context, field
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MoveUserRequest(rctx, fc.Args["sourceCollectionID"].(string), fc.Args["requestID"].(string), fc.Args["destinationCollectionID"].(string), fc.Args["nextRequestID"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().MoveUserRequest(rctx, fc.Args["sourceCollectionID"].(string), fc.Args["requestID"].(string), fc.Args["destinationCollectionID"].(string), fc.Args["nextRequestID"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14982,8 +16282,28 @@ func (ec *executionContext) _Mutation_createRESTRootUserCollection(ctx context.C
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateRESTRootUserCollection(rctx, fc.Args["title"].(string), fc.Args["data"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateRESTRootUserCollection(rctx, fc.Args["title"].(string), fc.Args["data"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15057,8 +16377,28 @@ func (ec *executionContext) _Mutation_createGQLRootUserCollection(ctx context.Co
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateGQLRootUserCollection(rctx, fc.Args["title"].(string), fc.Args["data"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateGQLRootUserCollection(rctx, fc.Args["title"].(string), fc.Args["data"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15132,8 +16472,28 @@ func (ec *executionContext) _Mutation_createGQLChildUserCollection(ctx context.C
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateGQLChildUserCollection(rctx, fc.Args["title"].(string), fc.Args["parentUserCollectionID"].(string), fc.Args["data"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateGQLChildUserCollection(rctx, fc.Args["title"].(string), fc.Args["parentUserCollectionID"].(string), fc.Args["data"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15207,8 +16567,28 @@ func (ec *executionContext) _Mutation_createRESTChildUserCollection(ctx context.
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateRESTChildUserCollection(rctx, fc.Args["title"].(string), fc.Args["parentUserCollectionID"].(string), fc.Args["data"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateRESTChildUserCollection(rctx, fc.Args["title"].(string), fc.Args["parentUserCollectionID"].(string), fc.Args["data"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15282,8 +16662,28 @@ func (ec *executionContext) _Mutation_renameUserCollection(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RenameUserCollection(rctx, fc.Args["userCollectionID"].(string), fc.Args["newTitle"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RenameUserCollection(rctx, fc.Args["userCollectionID"].(string), fc.Args["newTitle"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15357,8 +16757,28 @@ func (ec *executionContext) _Mutation_deleteUserCollection(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteUserCollection(rctx, fc.Args["userCollectionID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteUserCollection(rctx, fc.Args["userCollectionID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15412,8 +16832,28 @@ func (ec *executionContext) _Mutation_moveUserCollection(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MoveUserCollection(rctx, fc.Args["destCollectionID"].(*string), fc.Args["userCollectionID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().MoveUserCollection(rctx, fc.Args["destCollectionID"].(*string), fc.Args["userCollectionID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15487,8 +16927,28 @@ func (ec *executionContext) _Mutation_updateUserCollectionOrder(ctx context.Cont
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserCollectionOrder(rctx, fc.Args["collectionID"].(string), fc.Args["nextCollectionID"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateUserCollectionOrder(rctx, fc.Args["collectionID"].(string), fc.Args["nextCollectionID"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15542,8 +17002,28 @@ func (ec *executionContext) _Mutation_importUserCollectionsFromJSON(ctx context.
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ImportUserCollectionsFromJSON(rctx, fc.Args["jsonString"].(string), fc.Args["reqType"].(model.ReqType), fc.Args["parentCollectionID"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ImportUserCollectionsFromJSON(rctx, fc.Args["jsonString"].(string), fc.Args["reqType"].(model.ReqType), fc.Args["parentCollectionID"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15597,8 +17077,28 @@ func (ec *executionContext) _Mutation_updateUserCollection(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserCollection(rctx, fc.Args["userCollectionID"].(string), fc.Args["newTitle"].(*string), fc.Args["data"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateUserCollection(rctx, fc.Args["userCollectionID"].(string), fc.Args["newTitle"].(*string), fc.Args["data"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15764,8 +17264,28 @@ func (ec *executionContext) _Query_infra(ctx context.Context, field graphql.Coll
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Infra(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Infra(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*dto.Infra); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *dto.Infra`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15844,8 +17364,28 @@ func (ec *executionContext) _Query_infraConfigs(ctx context.Context, field graph
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().InfraConfigs(rctx, fc.Args["configNames"].([]dto.InfraConfigEnum))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().InfraConfigs(rctx, fc.Args["configNames"].([]dto.InfraConfigEnum))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.InfraConfig); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*model.InfraConfig`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15905,8 +17445,28 @@ func (ec *executionContext) _Query_allowedAuthProviders(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AllowedAuthProviders(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().AllowedAuthProviders(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []string`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15949,8 +17509,28 @@ func (ec *executionContext) _Query_admin(ctx context.Context, field graphql.Coll
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Admin(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Admin(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsAdmin == nil {
+				return nil, errors.New("directive isAdmin is not implemented")
+			}
+			return ec.directives.IsAdmin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*dto.Admin); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *dto.Admin`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16035,8 +17615,28 @@ func (ec *executionContext) _Query_myTeams(ctx context.Context, field graphql.Co
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MyTeams(rctx, fc.Args["cursor"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().MyTeams(rctx, fc.Args["cursor"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.Team); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*model.Team`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16112,8 +17712,28 @@ func (ec *executionContext) _Query_team(ctx context.Context, field graphql.Colle
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Team(rctx, fc.Args["teamID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Team(rctx, fc.Args["teamID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Team); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.Team`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16186,8 +17806,28 @@ func (ec *executionContext) _Query_teamInvitation(ctx context.Context, field gra
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().TeamInvitation(rctx, fc.Args["inviteID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().TeamInvitation(rctx, fc.Args["inviteID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamInvitation); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamInvitation`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16257,8 +17897,28 @@ func (ec *executionContext) _Query_exportCollectionsToJSON(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ExportCollectionsToJSON(rctx, fc.Args["teamID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().ExportCollectionsToJSON(rctx, fc.Args["teamID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16312,8 +17972,28 @@ func (ec *executionContext) _Query_rootCollectionsOfTeam(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RootCollectionsOfTeam(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int), fc.Args["teamID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().RootCollectionsOfTeam(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int), fc.Args["teamID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.TeamCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*model.TeamCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16383,8 +18063,28 @@ func (ec *executionContext) _Query_collection(ctx context.Context, field graphql
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Collection(rctx, fc.Args["collectionID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Collection(rctx, fc.Args["collectionID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16451,8 +18151,28 @@ func (ec *executionContext) _Query_searchForRequest(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchForRequest(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int), fc.Args["teamID"].(string), fc.Args["searchTerm"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().SearchForRequest(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int), fc.Args["teamID"].(string), fc.Args["searchTerm"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.TeamRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*model.TeamRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16522,8 +18242,28 @@ func (ec *executionContext) _Query_request(ctx context.Context, field graphql.Co
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Request(rctx, fc.Args["requestID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Request(rctx, fc.Args["requestID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.TeamRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.TeamRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16590,8 +18330,28 @@ func (ec *executionContext) _Query_requestsInCollection(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RequestsInCollection(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int), fc.Args["collectionID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().RequestsInCollection(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int), fc.Args["collectionID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.TeamRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*model.TeamRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16661,8 +18421,28 @@ func (ec *executionContext) _Query_shortcode(ctx context.Context, field graphql.
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Shortcode(rctx, fc.Args["code"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Shortcode(rctx, fc.Args["code"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Shortcode); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.Shortcode`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16723,8 +18503,28 @@ func (ec *executionContext) _Query_myShortcodes(ctx context.Context, field graph
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MyShortcodes(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().MyShortcodes(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.Shortcode); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*model.Shortcode`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16788,8 +18588,28 @@ func (ec *executionContext) _Query_userRESTRequests(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserRESTRequests(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int), fc.Args["collectionID"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().UserRESTRequests(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int), fc.Args["collectionID"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.UserRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*model.UserRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16859,8 +18679,28 @@ func (ec *executionContext) _Query_userGQLRequests(ctx context.Context, field gr
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserGQLRequests(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int), fc.Args["collectionID"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().UserGQLRequests(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int), fc.Args["collectionID"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.UserRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*model.UserRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16930,8 +18770,28 @@ func (ec *executionContext) _Query_userRequest(ctx context.Context, field graphq
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserRequest(rctx, fc.Args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().UserRequest(rctx, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserRequest); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserRequest`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17001,8 +18861,28 @@ func (ec *executionContext) _Query_rootRESTUserCollections(ctx context.Context, 
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RootRESTUserCollections(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().RootRESTUserCollections(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.UserCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*model.UserCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17076,8 +18956,28 @@ func (ec *executionContext) _Query_rootGQLUserCollections(ctx context.Context, f
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RootGQLUserCollections(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().RootGQLUserCollections(rctx, fc.Args["cursor"].(*string), fc.Args["take"].(*int))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.UserCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*model.UserCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17151,8 +19051,28 @@ func (ec *executionContext) _Query_userCollection(ctx context.Context, field gra
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserCollection(rctx, fc.Args["userCollectionID"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().UserCollection(rctx, fc.Args["userCollectionID"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserCollection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *model.UserCollection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17226,8 +19146,28 @@ func (ec *executionContext) _Query_exportUserCollectionsToJSON(ctx context.Conte
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ExportUserCollectionsToJSON(rctx, fc.Args["collectionID"].(*string), fc.Args["collectionType"].(model.ReqType))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().ExportUserCollectionsToJSON(rctx, fc.Args["collectionID"].(*string), fc.Args["collectionType"].(model.ReqType))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*dto.UserCollectionExportJSONData); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *dto.UserCollectionExportJSONData`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
