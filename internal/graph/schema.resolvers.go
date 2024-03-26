@@ -1820,7 +1820,10 @@ func (r *subscriptionResolver) TeamMemberAdded(ctx context.Context, teamID strin
 	go func() {
 		defer close(ch)
 		for e := range TeamMemberAddedSub.Subscribe() {
-			ch <- e.(*model.TeamMember)
+			temp := e.(*model.TeamMember)
+			if temp.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -1831,7 +1834,10 @@ func (r *subscriptionResolver) TeamMemberUpdated(ctx context.Context, teamID str
 	go func() {
 		defer close(ch)
 		for e := range TeamMemberUpdatedSub.Subscribe() {
-			ch <- e.(*model.TeamMember)
+			temp := e.(*model.TeamMember)
+			if temp.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -1853,7 +1859,10 @@ func (r *subscriptionResolver) TeamInvitationAdded(ctx context.Context, teamID s
 	go func() {
 		defer close(ch)
 		for e := range TeamInvitationAddedSub.Subscribe() {
-			ch <- e.(*model.TeamInvitation)
+			temp := e.(*model.TeamInvitation)
+			if temp.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -1875,7 +1884,10 @@ func (r *subscriptionResolver) TeamEnvironmentUpdated(ctx context.Context, teamI
 	go func() {
 		defer close(ch)
 		for e := range TeamEnvironmentUpdatedSub.Subscribe() {
-			ch <- e.(*model.TeamEnvironment)
+			temp := e.(*model.TeamEnvironment)
+			if temp.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -1886,7 +1898,10 @@ func (r *subscriptionResolver) TeamEnvironmentCreated(ctx context.Context, teamI
 	go func() {
 		defer close(ch)
 		for e := range TeamEnvironmentCreatedSub.Subscribe() {
-			ch <- e.(*model.TeamEnvironment)
+			temp := e.(*model.TeamEnvironment)
+			if temp.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -1897,7 +1912,10 @@ func (r *subscriptionResolver) TeamEnvironmentDeleted(ctx context.Context, teamI
 	go func() {
 		defer close(ch)
 		for e := range TeamEnvironmentDeletedSub.Subscribe() {
-			ch <- e.(*model.TeamEnvironment)
+			temp := e.(*model.TeamEnvironment)
+			if temp.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -1908,7 +1926,10 @@ func (r *subscriptionResolver) TeamCollectionAdded(ctx context.Context, teamID s
 	go func() {
 		defer close(ch)
 		for e := range TeamCollectionAddedSub.Subscribe() {
-			ch <- e.(*model.TeamCollection)
+			temp := e.(*model.TeamCollection)
+			if temp.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -1919,7 +1940,10 @@ func (r *subscriptionResolver) TeamCollectionUpdated(ctx context.Context, teamID
 	go func() {
 		defer close(ch)
 		for e := range TeamCollectionUpdatedSub.Subscribe() {
-			ch <- e.(*model.TeamCollection)
+			temp := e.(*model.TeamCollection)
+			if temp.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -1941,7 +1965,10 @@ func (r *subscriptionResolver) TeamCollectionMoved(ctx context.Context, teamID s
 	go func() {
 		defer close(ch)
 		for e := range TeamCollectionMovedSub.Subscribe() {
-			ch <- e.(*model.TeamCollection)
+			temp := e.(*model.TeamCollection)
+			if temp.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -1952,7 +1979,10 @@ func (r *subscriptionResolver) CollectionOrderUpdated(ctx context.Context, teamI
 	go func() {
 		defer close(ch)
 		for e := range CollectionOrderUpdatedSub.Subscribe() {
-			ch <- e.(*dto.CollectionReorderData)
+			temp := e.(*dto.CollectionReorderData)
+			if temp.Collection.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -1963,7 +1993,10 @@ func (r *subscriptionResolver) TeamRequestAdded(ctx context.Context, teamID stri
 	go func() {
 		defer close(ch)
 		for e := range TeamRequestAddedSub.Subscribe() {
-			ch <- e.(*model.TeamRequest)
+			temp := e.(*model.TeamRequest)
+			if temp.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -1974,7 +2007,10 @@ func (r *subscriptionResolver) TeamRequestUpdated(ctx context.Context, teamID st
 	go func() {
 		defer close(ch)
 		for e := range TeamRequestUpdatedSub.Subscribe() {
-			ch <- e.(*model.TeamRequest)
+			temp := e.(*model.TeamRequest)
+			if temp.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -1996,7 +2032,10 @@ func (r *subscriptionResolver) RequestOrderUpdated(ctx context.Context, teamID s
 	go func() {
 		defer close(ch)
 		for e := range RequestOrderUpdatedSub.Subscribe() {
-			ch <- e.(*dto.RequestReorderData)
+			temp := e.(*dto.RequestReorderData)
+			if temp.Request.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
@@ -2007,7 +2046,10 @@ func (r *subscriptionResolver) RequestMoved(ctx context.Context, teamID string) 
 	go func() {
 		defer close(ch)
 		for e := range RequestMovedSub.Subscribe() {
-			ch <- e.(*model.TeamRequest)
+			temp := e.(*model.TeamRequest)
+			if temp.TeamID == teamID {
+				ch <- temp
+			}
 		}
 	}()
 	return ch, nil
