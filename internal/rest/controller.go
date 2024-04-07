@@ -37,6 +37,35 @@ func ServeMux(path string) *http.ServeMux {
 	return mux
 }
 
+func TeamServeMux(path string) *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc(path+"search/{teamID}", TeamSerarch)
+	return mux
+}
+
+func TeamSerarch(w http.ResponseWriter, r *http.Request) {
+	teamID := r.PathValue("teamID")
+	log.Info().Str("teamID", teamID).Msg("searching in team")
+	vars := r.URL.Query()
+	searchQuery := vars.Get("searchQuery")
+	db := getDB(w, r)
+	if db == nil {
+		return
+	}
+	res, err := searchByTitle(db, teamID, searchQuery)
+	if err != nil {
+		responder(w, resp{
+			err.Error(),
+			err.Error(),
+			http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+	responder(w, struct {
+		Data []searchResult `json:"data"`
+	}{res}, http.StatusOK)
+}
+
 // Ping is healthcheck endpoint
 func Ping(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)

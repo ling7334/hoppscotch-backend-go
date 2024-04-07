@@ -15,6 +15,7 @@ func responder(w http.ResponseWriter, r any, status int) {
 		http.Error(w, fmt.Sprintf(`{"message":"%s","error":"%s","statusCode":%d}`, err, ex.ErrJSONInvalid, http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	} else {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(status)
 		w.Write(res)
 		return

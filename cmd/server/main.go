@@ -89,6 +89,8 @@ func main() {
 
 	http.Handle("/v1/auth/", mw.LogMiddleware(mw.DBMiddleware(db, rest.ServeMux("/v1/auth/"))))
 
+	http.Handle("/v1/team-collection/", mw.LogMiddleware(mw.OperatorMiddleware(db, mw.DBMiddleware(db, rest.TeamServeMux("/v1/team-collection/")))))
+
 	// gqlgen config
 	c := graph.Config{Resolvers: &graph.Resolver{
 		DB: db,

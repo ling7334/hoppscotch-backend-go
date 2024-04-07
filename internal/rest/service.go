@@ -143,3 +143,81 @@ func randString(nByte int) (string, error) {
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
 }
+
+func searchByTitle(db *gorm.DB, teamID, term string) (res []searchResult, err error) {
+	coll, err := searchCollections(db, teamID, term)
+	if err != nil {
+		return nil, err
+	}
+	res = append(res, coll...)
+	req, err := searchRequests(db, teamID, term)
+	if err != nil {
+		return nil, err
+	}
+	res = append(res, req...)
+	return
+}
+
+func searchCollections(db *gorm.DB, teamID, term string) (res []searchResult, err error) {
+	coll := []model.TeamCollection{}
+	if err := db.Where(`"teamID"=? AND title @@ ?`, teamID, term).Find(&coll).Error; err != nil {
+		return nil, err
+	}
+	for _, c := range coll {
+		parent := []searchResult{}
+		if c.ParentID != nil {
+			if parent, err = findParentCollection(db, *c.ParentID); err != nil {
+				return nil, err
+			}
+		}
+		res = append(res, searchResult{
+			ID:    c.ID,
+			Title: c.Title,
+			Type:  "collection",
+			Path:  parent,
+		})
+	}
+	return
+}
+
+func searchRequests(db *gorm.DB, teamID, term string) (res []searchResult, err error) {
+	req := []model.TeamRequest{}
+	if err := db.Where(`"teamID"=? AND title @@ ?`, teamID, term).Find(&req).Error; err != nil {
+		return nil, err
+	}
+	for _, c := range req {
+		if parent, err := findParentCollection(db, c.CollectionID); err != nil {
+			return nil, err
+		} else {
+			res = append(res, searchResult{
+				ID:     c.ID,
+				Title:  c.Title,
+				Type:   "request",
+				Method: c.Request.Method,
+				Path:   parent,
+			})
+		}
+	}
+	return
+}
+
+func findParentCollection(db *gorm.DB, id string) (res []searchResult, err error) {
+	coll := &model.TeamCollection{}
+	if err := db.Where("id=?", id).First(coll).Error; err != nil {
+		return nil, err
+	} else {
+		parent := []searchResult{}
+		if coll.ParentID != nil {
+			if parent, err = findParentCollection(db, *coll.ParentID); err != nil {
+				return nil, err
+			}
+		}
+		res = append(res, searchResult{
+			ID:    coll.ID,
+			Title: coll.Title,
+			Type:  "collection",
+			Path:  parent,
+		})
+	}
+	return
+}

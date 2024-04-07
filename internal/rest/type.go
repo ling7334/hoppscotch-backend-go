@@ -23,3 +23,11 @@ type resp struct {
 	Error      string `json:"error"`
 	StatusCode int    `json:"statusCode"`
 }
+
+type searchResult struct {
+	Type   string         `json:"type"`
+	ID     string         `json:"id"`
+	Title  string         `json:"title"`
+	Method string         `json:"method,omitempty"`
+	Path   []searchResult `json:"path"`
+}
