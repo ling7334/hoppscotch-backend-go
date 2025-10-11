@@ -1,4 +1,4 @@
-FROM golang:alpine3.19 as go_builder
+FROM golang:alpine as go_builder
 
 FROM go_builder as builder
 # RUN ["git", "clone", "https://github.com/ling734/hoppscotch-backend-go.git", "/app"]
