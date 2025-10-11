@@ -18,14 +18,14 @@ import (
 
 func init() {
 	InitializeDB()
-	err := db.AutoMigrate(&model.TeamEnvironment{})
+	err := _gen_test_db.AutoMigrate(&model.TeamEnvironment{})
 	if err != nil {
 		fmt.Printf("Error: AutoMigrate(&model.TeamEnvironment{}) fail: %s", err)
 	}
 }
 
 func Test_teamEnvironmentQuery(t *testing.T) {
-	teamEnvironment := newTeamEnvironment(db)
+	teamEnvironment := newTeamEnvironment(_gen_test_db)
 	teamEnvironment = *teamEnvironment.As(teamEnvironment.TableName())
 	_do := teamEnvironment.WithContext(context.Background()).Debug()
 

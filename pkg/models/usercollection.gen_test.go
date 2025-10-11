@@ -18,14 +18,14 @@ import (
 
 func init() {
 	InitializeDB()
-	err := db.AutoMigrate(&model.UserCollection{})
+	err := _gen_test_db.AutoMigrate(&model.UserCollection{})
 	if err != nil {
 		fmt.Printf("Error: AutoMigrate(&model.UserCollection{}) fail: %s", err)
 	}
 }
 
 func Test_userCollectionQuery(t *testing.T) {
-	userCollection := newUserCollection(db)
+	userCollection := newUserCollection(_gen_test_db)
 	userCollection = *userCollection.As(userCollection.TableName())
 	_do := userCollection.WithContext(context.Background()).Debug()
 

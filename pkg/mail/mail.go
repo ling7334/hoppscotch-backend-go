@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"log/slog"
 	"net/smtp"
 	"net/url"
 	"os"
@@ -12,7 +13,6 @@ import (
 	ex "exception"
 
 	"github.com/joho/godotenv"
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -49,54 +49,54 @@ func SendMailWithTLS(u *url.URL, auth smtp.Auth, port, from, to string, body []b
 
 	conn, err := tls.Dial("tcp", u.Hostname()+":"+port, tlsconfig)
 	if err != nil {
-		log.Error().Err(err).Msg("fail to dial")
+		slog.Error("fail to dial", "error", err)
 		return err
 	}
 	c, err := smtp.NewClient(conn, u.Hostname())
 	if err != nil {
-		log.Error().Err(err).Msg("fail to NewClient")
+		slog.Error("fail to NewClient", "error", err)
 		return err
 	}
 
 	// Auth
 	if err = c.Auth(auth); err != nil {
-		log.Error().Err(err).Msg("fail to auth")
+		slog.Error("fail to auth", "error", err)
 		return err
 	}
 
 	// To && From
 	if err = c.Mail(from); err != nil {
-		log.Error().Err(err).Msg("fail to set mailer")
+		slog.Error("fail to set mailer", "error", err)
 		return err
 	}
 
 	if err = c.Rcpt(to); err != nil {
-		log.Error().Err(err).Msg("fail to set receiver")
+		slog.Error("fail to set receiver", "error", err)
 		return err
 	}
 
 	// Data
 	w, err := c.Data()
 	if err != nil {
-		log.Error().Err(err).Msg("fail to get writer")
+		slog.Error("fail to get writer", "error", err)
 		return err
 	}
 
 	_, err = w.Write(body)
 	if err != nil {
-		log.Error().Err(err).Msg("fail to write")
+		slog.Error("fail to write", "error", err)
 		return err
 	}
 
 	err = w.Close()
 	if err != nil {
-		log.Error().Err(err).Msg("fail to close")
+		slog.Error("fail to close", "error", err)
 		return err
 	}
 
 	err = c.Quit()
 	if err != nil {
-		log.Error().Err(err).Msg("fail to quit")
+		slog.Error("fail to quit", "error", err)
 		return err
 	}
 	return nil
@@ -113,7 +113,7 @@ func SendUserInvitation(to string, magicLink string) error {
 	}
 	u, err := url.Parse(dsn)
 	if err != nil {
-		log.Error().Err(err).Msg("fail to parse MAILER_SMTP_URL")
+		slog.Error("fail to parse MAILER_SMTP_URL", "error", err)
 		return ex.ErrMailerSMTPUrlUndefined
 	}
 	port := u.Port()
@@ -126,7 +126,7 @@ func SendUserInvitation(to string, magicLink string) error {
 
 	t, err := template.ParseFiles(UserTemplate)
 	if err != nil {
-		log.Error().Err(err).Msg("fail to parse UserTemplate")
+		slog.Error("fail to parse UserTemplate", "error", err)
 		return ex.ErrEmailFailed
 	}
 
@@ -143,18 +143,18 @@ func SendUserInvitation(to string, magicLink string) error {
 		MagicLink:    magicLink,
 	})
 	if err != nil {
-		log.Error().Err(err).Msg("fail to format mail")
+		slog.Error("fail to format mail", "error", err)
 		return ex.ErrEmailFailed
 	}
 
 	err = smtp.SendMail(u.Host, auth, from, []string{to}, body.Bytes())
 	// err = SendMailWithTLS(u, auth, port, from, to, body.Bytes())
 	if err != nil {
-		log.Error().Err(err).Msg("fail to send mail")
+		slog.Error("fail to send mail", "error", err)
 		return ex.ErrSenderEmailInvalid
 	}
 
-	log.Debug().Msg("Email Sent!")
+	slog.Debug("Email Sent!")
 	return nil
 }
 
@@ -169,7 +169,7 @@ func SendTeamInvitation(to, invitee, invite_team_name, action_url string) error 
 	}
 	u, err := url.Parse(dsn)
 	if err != nil {
-		log.Error().Err(err).Msg("fail to parse MAILER_SMTP_URL")
+		slog.Error("fail to parse MAILER_SMTP_URL", "error", err)
 		return ex.ErrMailerSMTPUrlUndefined
 	}
 	port := u.Port()
@@ -182,7 +182,7 @@ func SendTeamInvitation(to, invitee, invite_team_name, action_url string) error 
 
 	t, err := template.ParseFiles(TeamTemplate)
 	if err != nil {
-		log.Error().Err(err).Msg("fail to parse TeamTemplate")
+		slog.Error("fail to parse TeamTemplate", "error", err)
 		return ex.ErrEmailFailed
 	}
 
@@ -201,16 +201,16 @@ func SendTeamInvitation(to, invitee, invite_team_name, action_url string) error 
 		Action_url:       action_url,
 	})
 	if err != nil {
-		log.Error().Err(err).Msg("fail to format mail")
+		slog.Error("fail to format mail", "error", err)
 		return ex.ErrEmailFailed
 	}
 
 	// Sending email.
 	err = SendMailWithTLS(u, auth, port, from, to, body.Bytes())
 	if err != nil {
-		log.Error().Err(err).Msg("fail to SendMailWithTLS")
+		slog.Error("fail to SendMailWithTLS", "error", err)
 		return ex.ErrSenderEmailInvalid
 	}
-	log.Debug().Msg("Email Sent!")
+	slog.Debug("Email Sent!")
 	return nil
 }

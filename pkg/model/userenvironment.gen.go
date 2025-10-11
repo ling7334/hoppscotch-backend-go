@@ -11,9 +11,9 @@ type UserEnvironment struct {
 	ID        string  `gorm:"column:id;type:text;primaryKey" json:"id"`
 	UserUID   string  `gorm:"column:userUid;type:text;not null" json:"userUid"`
 	Name      *string `gorm:"column:name;type:text" json:"name"`
-	Variables string   `gorm:"column:variables;type:jsonb;not null" json:"variables"`
+	Variables string  `gorm:"column:variables;type:jsonb;not null" json:"variables"`
 	IsGlobal  bool    `gorm:"column:isGlobal;type:boolean;not null" json:"isGlobal"`
-	User	  User 	  `gorm:"foreignKey:UserUID" json:"user"`
+	User      User    `gorm:"foreignKey:UserUID" json:"user"`
 }
 
 // TableName UserEnvironment's table name

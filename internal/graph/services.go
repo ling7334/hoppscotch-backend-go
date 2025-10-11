@@ -5,6 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"model"
+	"strconv"
+	"strings"
+
+	ex "exception"
 
 	"github.com/lucsky/cuid"
 	"gorm.io/gorm"
@@ -429,4 +433,218 @@ func TeamCollectionToDTO(collection model.TeamCollection) dto.TeamCollectionExpo
 		Folders:  sub,
 		Requests: reqs,
 	}
+}
+
+func ShortcodeToDTO(sc *model.Shortcode) *dto.ShortcodeWithUserEmail {
+	return &dto.ShortcodeWithUserEmail{
+		ID:         sc.ID,
+		Request:    sc.Request,
+		Properties: sc.EmbedProperties,
+		CreatedOn:  sc.CreatedOn,
+		Creator: &dto.ShortcodeCreator{
+			UID:   sc.Creator.UID,
+			Email: *sc.Creator.Email,
+		},
+	}
+}
+
+func AssignUserCollections(colls *[]model.UserCollection, reqType model.ReqType, parentCollectionID *string) {
+	for _, coll := range *colls {
+		coll.ID = cuid.New()
+		coll.ParentID = parentCollectionID
+		for _, r := range coll.Requests {
+			r.ID = cuid.New()
+			r.CollectionID = coll.ID
+			r.Type = reqType
+		}
+		AssignUserCollections(&coll.Children, reqType, &coll.ID)
+	}
+	return
+}
+
+// Following fields are not updatable by `infraConfigs` Mutation. Use dedicated mutations for these fields instead.
+// EXCLUDE_FROM_UPDATE_CONFIGS := []string{
+// 	"VITE_ALLOWED_AUTH_PROVIDERS",
+// 	"ALLOW_ANALYTICS_COLLECTION",
+// 	"ANALYTICS_USER_ID",
+// 	"IS_FIRST_TIME_INFRA_SETUP",
+// 	"MAILER_SMTP_ENABLE",
+// 	"USER_HISTORY_STORE_ENABLED",
+// }
+
+// Following fields can not be fetched by `infraConfigs` Query. Use dedicated queries for these fields instead.
+// EXCLUDE_FROM_FETCH_CONFIGS := []string{
+// 	"VITE_ALLOWED_AUTH_PROVIDERS",
+// 	"ANALYTICS_USER_ID",
+// 	"IS_FIRST_TIME_INFRA_SETUP",
+// }
+
+// -------------------------------
+// Casting and helpers
+// -------------------------------
+
+func cast(dbCfg model.InfraConfig) (*model.InfraConfig, error) {
+	var plainValue string
+	enable := "ENABLE"
+	disable := "DISABLE"
+	if dbCfg.IsEncrypted {
+		v, err := Decrypt(*dbCfg.Value, nil)
+		if err != nil {
+			return nil, err
+		}
+		plainValue = v
+	} else {
+		plainValue = *dbCfg.Value
+	}
+
+	// 模拟 TS 中的转换逻辑
+	if plainValue == "true" {
+		dbCfg.Value = &enable
+	} else {
+		dbCfg.Value = &disable
+	}
+
+	return &dbCfg, nil
+}
+
+// GetInfraConfigsMap 返回 map[name]value（自动解密）
+func GetInfraConfigsMap(r *gorm.DB) (map[string]string, error) {
+	var cfgs []*model.InfraConfig
+	err := r.Find(&cfgs).Error
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[string]string)
+	for _, c := range cfgs {
+		v, err := cast(*c)
+		if err != nil {
+			return nil, err
+		}
+		out[string(c.Name)] = *v.Value
+	}
+	return out, nil
+}
+
+// -------------------------------
+// CRUD-like Operations
+// -------------------------------
+
+func UpdateInfraConfig(r *gorm.DB, name dto.InfraConfigEnum, value string, isEnc bool) (res model.InfraConfig, err error) {
+	err = r.Model(&res).Where("name = ?", name).Clauses(clause.Returning{}).Updates(model.InfraConfig{Value: &value, IsEncrypted: isEnc}).Error
+	return
+}
+
+// Update 单个 infra config
+func Update(r *gorm.DB, name dto.InfraConfigEnum, value string, restartEnabled bool) (model.InfraConfig, error) {
+	// 验证
+	if ok, err := validateEnvValues([]model.InfraConfig{{Name: name.String(), Value: &value}}); !ok {
+		return model.InfraConfig{}, err
+	}
+
+	// 先查 isEncrypted
+	var existing model.InfraConfig
+	err := r.First(&existing, "name = ?", name).Error
+	if err != nil {
+		return model.InfraConfig{}, ex.ErrInfraConfigNotFound
+	}
+
+	saveValue := value
+	isEnc := false
+	if existing.IsEncrypted {
+		enc, err := Encrypt(value, nil)
+		if err != nil {
+			return model.InfraConfig{}, err
+		}
+		saveValue = enc
+		isEnc = true
+	}
+
+	updated, err := UpdateInfraConfig(r, name, saveValue, isEnc)
+	if err != nil {
+		return model.InfraConfig{}, ex.ErrInfraConfigUpdateFailed
+	}
+
+	if restartEnabled {
+		fmt.Println("Restart requested after update (implement actual restart)")
+	}
+
+	casted, err := cast(updated)
+	if err != nil {
+		return model.InfraConfig{}, err
+	}
+	return *casted, nil
+}
+
+func validateEnvValues(configs []model.InfraConfig) (bool, error) {
+	for _, cfg := range configs {
+		name := cfg.Name
+		value := cfg.Value
+		fail := func() (bool, error) {
+			fmt.Printf("[Infra Validation Failed] Key: %s\n", name)
+			return false, ex.ErrInfraConfigInvalidInput
+		}
+
+		switch name {
+		case "MAILER_SMTP_ENABLE", "MAILER_USE_CUSTOM_CONFIGS", "MAILER_SMTP_SECURE", "MAILER_TLS_REJECT_UNAUTHORIZED":
+			if *value != "true" && *value != "false" {
+				return fail()
+			}
+		case "MAILER_SMTP_URL":
+			if !validateSMTPUrl(*value) {
+				return fail()
+			}
+		case "MAILER_ADDRESS_FROM":
+			if !validateSMTPEmail(*value) {
+				return fail()
+			}
+		case "MAILER_SMTP_HOST", "MAILER_SMTP_PORT", "MAILER_SMTP_USER", "MAILER_SMTP_PASSWORD",
+			"GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_SCOPE",
+			"GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "GITHUB_SCOPE",
+			"MICROSOFT_CLIENT_ID", "MICROSOFT_CLIENT_SECRET", "MICROSOFT_SCOPE", "MICROSOFT_TENANT":
+			if *value == "" {
+				return fail()
+			}
+		case "GOOGLE_CALLBACK_URL", "GITHUB_CALLBACK_URL", "MICROSOFT_CALLBACK_URL":
+			if !validateUrl(*value) {
+				return fail()
+			}
+		case "VITE_ALLOWED_AUTH_PROVIDERS":
+			parts := strings.Split(*value, ",")
+			if len(parts) == 0 {
+				return fail()
+			}
+			for _, p := range parts {
+				switch strings.ToUpper(p) {
+				case "GOOGLE", "GITHUB", "MICROSOFT", "EMAIL":
+					// OK
+				default:
+					return fail()
+				}
+			}
+		case "TOKEN_SALT_COMPLEXITY", "MAGIC_LINK_TOKEN_VALIDITY", "ACCESS_TOKEN_VALIDITY", "REFRESH_TOKEN_VALIDITY", "RATE_LIMIT_TTL", "RATE_LIMIT_MAX":
+			n, err := strconv.Atoi(*value)
+			if err != nil || n < 1 {
+				return fail()
+			}
+		default:
+			// no-op
+		}
+	}
+	return true, nil
+}
+
+// -------------------------------
+// Validation helpers
+// -------------------------------
+
+func validateSMTPUrl(u string) bool {
+	// 简单检查
+	return strings.HasPrefix(u, "smtp://") || strings.HasPrefix(u, "smtps://")
+}
+func validateSMTPEmail(e string) bool {
+	// 非严格 email 检查
+	return strings.Contains(e, "@")
+}
+func validateUrl(u string) bool {
+	return strings.HasPrefix(u, "http://") || strings.HasPrefix(u, "https://")
 }

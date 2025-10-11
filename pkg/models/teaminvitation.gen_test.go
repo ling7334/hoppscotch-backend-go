@@ -18,14 +18,14 @@ import (
 
 func init() {
 	InitializeDB()
-	err := db.AutoMigrate(&model.TeamInvitation{})
+	err := _gen_test_db.AutoMigrate(&model.TeamInvitation{})
 	if err != nil {
 		fmt.Printf("Error: AutoMigrate(&model.TeamInvitation{}) fail: %s", err)
 	}
 }
 
 func Test_teamInvitationQuery(t *testing.T) {
-	teamInvitation := newTeamInvitation(db)
+	teamInvitation := newTeamInvitation(_gen_test_db)
 	teamInvitation = *teamInvitation.As(teamInvitation.TableName())
 	_do := teamInvitation.WithContext(context.Background()).Debug()
 

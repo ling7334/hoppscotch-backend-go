@@ -14,9 +14,9 @@ const TableNameUserSetting = "UserSettings"
 type UserSetting struct {
 	ID         string    `gorm:"column:id;type:text;primaryKey" json:"id"`
 	UserUID    string    `gorm:"column:userUid;type:text;not null;uniqueIndex:UserSettings_userUid_key,priority:1" json:"userUid"`
-	Properties string     `gorm:"column:properties;type:jsonb;not null" json:"properties"`
-	UpdatedOn  time.Time `gorm:"column:updatedOn;type:timestamp(3) without time zone;not null;autoUpdateTime" json:"updatedOn"`
-	User	   User 	 `gorm:"foreignKey:UserUID" json:"user"`
+	Properties string    `gorm:"column:properties;type:jsonb;not null" json:"properties"`
+	UpdatedOn  time.Time `gorm:"column:updatedOn;type:timestamp(3) with time zone;not null;autoUpdateTime" json:"updatedOn"`
+	User       User      `gorm:"foreignKey:UserUID" json:"user"`
 }
 
 // TableName UserSetting's table name

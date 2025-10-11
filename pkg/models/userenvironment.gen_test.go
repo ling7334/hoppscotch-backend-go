@@ -18,14 +18,14 @@ import (
 
 func init() {
 	InitializeDB()
-	err := db.AutoMigrate(&model.UserEnvironment{})
+	err := _gen_test_db.AutoMigrate(&model.UserEnvironment{})
 	if err != nil {
 		fmt.Printf("Error: AutoMigrate(&model.UserEnvironment{}) fail: %s", err)
 	}
 }
 
 func Test_userEnvironmentQuery(t *testing.T) {
-	userEnvironment := newUserEnvironment(db)
+	userEnvironment := newUserEnvironment(_gen_test_db)
 	userEnvironment = *userEnvironment.As(userEnvironment.TableName())
 	_do := userEnvironment.WithContext(context.Background()).Debug()
 

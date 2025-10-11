@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -17,7 +19,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
-	"github.com/rs/zerolog/log"
+	"github.com/vektah/gqlparser/v2/ast"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -36,7 +38,8 @@ func init() {
 	}
 	dsn = os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		log.Fatal().Msg("DATABASE_URL is not set")
+		slog.Error("DATABASE_URL is not set")
+		os.Exit(1)
 	}
 }
 
@@ -47,7 +50,7 @@ func initDB(db *gorm.DB) {
 	// db.Exec("CREATE SCHEMA public")
 	// db.Exec("USE public")
 
-	db.Exec("CREATE TYPE Team_Member_Role AS ENUM('OWNER', 'VIEWER', 'EDITOR');")
+	db.Exec("CREATE TYPE Team_Access_Role AS ENUM('OWNER', 'VIEWER', 'EDITOR');")
 	db.Exec("CREATE TYPE Req_Type AS ENUM('REST', 'GQL');")
 
 	// Migration to create tables for Order and Item schema
@@ -70,6 +73,8 @@ func initDB(db *gorm.DB) {
 		&model.InfraConfig{},
 		&model.InvitedUser{},
 		&model.Shortcode{},
+		&model.InfraToken{},
+		&model.PersonalAccessToken{},
 	)
 }
 
@@ -80,7 +85,7 @@ func main() {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to connect database")
+		panic("failed to connect database")
 	}
 
 	// initDB(db)
@@ -113,11 +118,11 @@ func main() {
 	srv.AddTransport(transport.POST{})
 	// srv.AddTransport(transport.MultipartForm{})
 
-	srv.SetQueryCache(lru.New(1000))
+	srv.SetQueryCache(lru.New[*ast.QueryDocument](1000))
 
 	srv.Use(extension.Introspection{})
 	srv.Use(extension.AutomaticPersistedQuery{
-		Cache: lru.New(100),
+		Cache: lru.New[string](100),
 	})
 
 	// Complexity Limit
@@ -129,6 +134,6 @@ func main() {
 	}
 	http.Handle("/graphql", mw.LogMiddleware(mw.JwtMiddleware(mw.OperatorMiddleware(db, srv))))
 
-	log.Info().Msgf("listen on :%s", defaultPort)
-	log.Fatal().Err(http.ListenAndServe(":"+defaultPort, nil)).Msg("something went wrong")
+	slog.Info(fmt.Sprintf("listen on :%s", defaultPort))
+	slog.Error("Fail to start server", "error", http.ListenAndServe(":"+defaultPort, nil))
 }

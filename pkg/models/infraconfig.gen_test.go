@@ -18,14 +18,14 @@ import (
 
 func init() {
 	InitializeDB()
-	err := db.AutoMigrate(&model.InfraConfig{})
+	err := _gen_test_db.AutoMigrate(&model.InfraConfig{})
 	if err != nil {
 		fmt.Printf("Error: AutoMigrate(&model.InfraConfig{}) fail: %s", err)
 	}
 }
 
 func Test_infraConfigQuery(t *testing.T) {
-	infraConfig := newInfraConfig(db)
+	infraConfig := newInfraConfig(_gen_test_db)
 	infraConfig = *infraConfig.As(infraConfig.TableName())
 	_do := infraConfig.WithContext(context.Background()).Debug()
 

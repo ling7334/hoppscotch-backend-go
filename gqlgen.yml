@@ -99,8 +99,8 @@ models:
   SessionType:
     model: model.ReqType
 
-  TeamMemberRole:
-    model: model.TeamMemberRole
+  TeamAccessRole:
+    model: model.TeamAccessRole
 
   User:
     model: model.User
@@ -121,6 +121,8 @@ models:
   UserCollection:
     model: model.UserCollection
     fields:
+      requests:
+        resolver: true
       childrenREST:
         resolver: true
       childrenGQL:
@@ -157,6 +159,9 @@ models:
 
   TeamCollection:
     model: model.TeamCollection
+    fields:
+      children:
+        resolver: true
 
   TeamRequest:
     model: model.TeamRequest
@@ -176,11 +181,19 @@ models:
   InfraConfig:
     model: model.InfraConfig
 
+  InfraToken:
+    model: model.InfraToken
+
+  PersonalAccessToken:
+    model: model.PersonalAccessToken
+
   Infra:
     fields:
       UserInfo:
         resolver: true
       AllUsers:
+        resolver: true
+      AllUsersV2:
         resolver: true
       InvitedUsers:
         resolver: true

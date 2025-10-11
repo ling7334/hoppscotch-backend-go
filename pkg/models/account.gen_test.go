@@ -18,14 +18,14 @@ import (
 
 func init() {
 	InitializeDB()
-	err := db.AutoMigrate(&model.Account{})
+	err := _gen_test_db.AutoMigrate(&model.Account{})
 	if err != nil {
 		fmt.Printf("Error: AutoMigrate(&model.Account{}) fail: %s", err)
 	}
 }
 
 func Test_accountQuery(t *testing.T) {
-	account := newAccount(db)
+	account := newAccount(_gen_test_db)
 	account = *account.As(account.TableName())
 	_do := account.WithContext(context.Background()).Debug()
 

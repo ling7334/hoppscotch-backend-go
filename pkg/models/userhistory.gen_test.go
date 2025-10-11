@@ -18,14 +18,14 @@ import (
 
 func init() {
 	InitializeDB()
-	err := db.AutoMigrate(&model.UserHistory{})
+	err := _gen_test_db.AutoMigrate(&model.UserHistory{})
 	if err != nil {
 		fmt.Printf("Error: AutoMigrate(&model.UserHistory{}) fail: %s", err)
 	}
 }
 
 func Test_userHistoryQuery(t *testing.T) {
-	userHistory := newUserHistory(db)
+	userHistory := newUserHistory(_gen_test_db)
 	userHistory = *userHistory.As(userHistory.TableName())
 	_do := userHistory.WithContext(context.Background()).Debug()
 

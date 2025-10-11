@@ -3,6 +3,7 @@
 package dto
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"model"
@@ -19,38 +20,12 @@ type Admin struct {
 	Email *string `json:"email,omitempty"`
 	// URL to the profile photo of the user (if fetched)
 	PhotoURL *string `json:"photoURL,omitempty"`
+	// Date when the user last logged in
+	LastLoggedOn *time.Time `json:"lastLoggedOn,omitempty"`
+	// Date when the user last interacted with the app
+	LastActiveOn *time.Time `json:"lastActiveOn,omitempty"`
 	// Date when the user account was created
 	CreatedOn time.Time `json:"createdOn"`
-	// Returns a list of all admin users in infra
-	Admins []*model.User `json:"admins"`
-	// Returns a user info by UID
-	UserInfo *model.User `json:"userInfo"`
-	// Returns a list of all the users in infra
-	AllUsers []*model.User `json:"allUsers"`
-	// Returns a list of all the invited users
-	InvitedUsers []*model.InvitedUser `json:"invitedUsers"`
-	// Returns a list of all the teams in the infra
-	AllTeams []*model.Team `json:"allTeams"`
-	// Returns a team info by ID when requested by Admin
-	TeamInfo *model.Team `json:"teamInfo"`
-	// Return count of all the members in a team
-	MembersCountInTeam int `json:"membersCountInTeam"`
-	// Return count of all the stored collections in a team
-	CollectionCountInTeam int `json:"collectionCountInTeam"`
-	// Return count of all the stored requests in a team
-	RequestCountInTeam int `json:"requestCountInTeam"`
-	// Return count of all the stored environments in a team
-	EnvironmentCountInTeam int `json:"environmentCountInTeam"`
-	// Return all the pending invitations in a team
-	PendingInvitationCountInTeam []*model.TeamInvitation `json:"pendingInvitationCountInTeam"`
-	// Return total number of Users in organization
-	UsersCount int `json:"usersCount"`
-	// Return total number of Teams in organization
-	TeamsCount int `json:"teamsCount"`
-	// Return total number of Team Collections in organization
-	TeamCollectionsCount int `json:"teamCollectionsCount"`
-	// Return total number of Team Requests in organization
-	TeamRequestsCount int `json:"teamRequestsCount"`
 }
 
 type CollectionReorderData struct {
@@ -58,6 +33,13 @@ type CollectionReorderData struct {
 	Collection *model.TeamCollection `json:"collection"`
 	// Team Collection succeeding the collection being moved in its new position
 	NextCollection *model.TeamCollection `json:"nextCollection,omitempty"`
+}
+
+type CreateInfraTokenResponse struct {
+	// The infra token
+	Token string `json:"token"`
+	// Infra token info
+	Info *model.InfraToken `json:"info"`
 }
 
 type CreateTeamRequestInput struct {
@@ -85,6 +67,8 @@ type Infra struct {
 	UserInfo *model.User `json:"userInfo"`
 	// Returns a list of all the users in infra
 	AllUsers []*model.User `json:"allUsers"`
+	// Returns a list of all the users in infra
+	AllUsersV2 []*model.User `json:"allUsersV2"`
 	// Returns a list of all the invited users
 	InvitedUsers []*model.InvitedUser `json:"invitedUsers"`
 	// Returns a list of all the teams in the infra
@@ -163,6 +147,25 @@ type UpdateTeamRequestInput struct {
 	Title *string `json:"title,omitempty"`
 }
 
+type UserCollectionDuplicatedData struct {
+	// ID of the user collection
+	ID string `json:"id"`
+	// Displayed title of the user collection
+	Title string `json:"title"`
+	// JSON string representing the collection data
+	Data *string `json:"data,omitempty"`
+	// Type of the user collection
+	Type model.ReqType `json:"type"`
+	// Parent ID of the duplicated User Collection
+	ParentID *string `json:"parentID,omitempty"`
+	// User ID of the duplicated User Collection
+	UserID string `json:"userID"`
+	// Child collections of the duplicated User Collection
+	ChildCollections string `json:"childCollections"`
+	// Requests of the duplicated User Collection
+	Requests []*model.UserRequest `json:"requests"`
+}
+
 type UserCollectionExportJSONData struct {
 	// Stringified contents of the collection
 	ExportedCollection string `json:"exportedCollection"`
@@ -182,6 +185,22 @@ type UserCollectionReorderData struct {
 	UserCollection *model.UserCollection `json:"userCollection"`
 	// User Collection succeeding the collection being moved in its new position
 	NextUserCollection *model.UserCollection `json:"nextUserCollection,omitempty"`
+}
+
+type UserCollectionSortData struct {
+	// ID of the parent collection
+	ParentCollectionID *string `json:"parentCollectionID,omitempty"`
+	// Sorting option
+	SortOption SortOptions `json:"sortOption"`
+}
+
+type UserDeletionResult struct {
+	// UID of the user
+	UserUID string `json:"userUID"`
+	// Flag to determine if user deletion was successful or not
+	IsDeleted bool `json:"isDeleted"`
+	// Error message if user deletion was not successful
+	ErrorMessage *string `json:"errorMessage,omitempty"`
 }
 
 type UserHistoryDeletedManyData struct {
@@ -226,7 +245,7 @@ func (e AuthProvider) String() string {
 	return string(e)
 }
 
-func (e *AuthProvider) UnmarshalGQL(v interface{}) error {
+func (e *AuthProvider) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -243,33 +262,109 @@ func (e AuthProvider) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+func (e *AuthProvider) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AuthProvider) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
 type InfraConfigEnum string
 
 const (
-	InfraConfigEnumMailerSMTPURL         InfraConfigEnum = "MAILER_SMTP_URL"
-	InfraConfigEnumMailerAddressFrom     InfraConfigEnum = "MAILER_ADDRESS_FROM"
-	InfraConfigEnumGoogleClientID        InfraConfigEnum = "GOOGLE_CLIENT_ID"
-	InfraConfigEnumGoogleClientSecret    InfraConfigEnum = "GOOGLE_CLIENT_SECRET"
-	InfraConfigEnumGithubClientID        InfraConfigEnum = "GITHUB_CLIENT_ID"
-	InfraConfigEnumGithubClientSecret    InfraConfigEnum = "GITHUB_CLIENT_SECRET"
-	InfraConfigEnumMicrosoftClientID     InfraConfigEnum = "MICROSOFT_CLIENT_ID"
-	InfraConfigEnumMicrosoftClientSecret InfraConfigEnum = "MICROSOFT_CLIENT_SECRET"
+	InfraConfigEnumOnboardingCompleted         InfraConfigEnum = "ONBOARDING_COMPLETED"
+	InfraConfigEnumOnboardingRecoveryToken     InfraConfigEnum = "ONBOARDING_RECOVERY_TOKEN"
+	InfraConfigEnumJwtSecret                   InfraConfigEnum = "JWT_SECRET"
+	InfraConfigEnumSessionSecret               InfraConfigEnum = "SESSION_SECRET"
+	InfraConfigEnumTokenSaltComplexity         InfraConfigEnum = "TOKEN_SALT_COMPLEXITY"
+	InfraConfigEnumMagicLinkTokenValidity      InfraConfigEnum = "MAGIC_LINK_TOKEN_VALIDITY"
+	InfraConfigEnumRefreshTokenValidity        InfraConfigEnum = "REFRESH_TOKEN_VALIDITY"
+	InfraConfigEnumAccessTokenValidity         InfraConfigEnum = "ACCESS_TOKEN_VALIDITY"
+	InfraConfigEnumAllowSecureCookies          InfraConfigEnum = "ALLOW_SECURE_COOKIES"
+	InfraConfigEnumRateLimitTTL                InfraConfigEnum = "RATE_LIMIT_TTL"
+	InfraConfigEnumRateLimitMax                InfraConfigEnum = "RATE_LIMIT_MAX"
+	InfraConfigEnumMailerSMTPEnable            InfraConfigEnum = "MAILER_SMTP_ENABLE"
+	InfraConfigEnumMailerUseCustomConfigs      InfraConfigEnum = "MAILER_USE_CUSTOM_CONFIGS"
+	InfraConfigEnumMailerSMTPURL               InfraConfigEnum = "MAILER_SMTP_URL"
+	InfraConfigEnumMailerAddressFrom           InfraConfigEnum = "MAILER_ADDRESS_FROM"
+	InfraConfigEnumMailerSMTPHost              InfraConfigEnum = "MAILER_SMTP_HOST"
+	InfraConfigEnumMailerSMTPPort              InfraConfigEnum = "MAILER_SMTP_PORT"
+	InfraConfigEnumMailerSMTPSecure            InfraConfigEnum = "MAILER_SMTP_SECURE"
+	InfraConfigEnumMailerSMTPUser              InfraConfigEnum = "MAILER_SMTP_USER"
+	InfraConfigEnumMailerSMTPPassword          InfraConfigEnum = "MAILER_SMTP_PASSWORD"
+	InfraConfigEnumMailerTLSRejectUnauthorized InfraConfigEnum = "MAILER_TLS_REJECT_UNAUTHORIZED"
+	InfraConfigEnumGoogleClientID              InfraConfigEnum = "GOOGLE_CLIENT_ID"
+	InfraConfigEnumGoogleClientSecret          InfraConfigEnum = "GOOGLE_CLIENT_SECRET"
+	InfraConfigEnumGoogleCallbackURL           InfraConfigEnum = "GOOGLE_CALLBACK_URL"
+	InfraConfigEnumGoogleScope                 InfraConfigEnum = "GOOGLE_SCOPE"
+	InfraConfigEnumGithubClientID              InfraConfigEnum = "GITHUB_CLIENT_ID"
+	InfraConfigEnumGithubClientSecret          InfraConfigEnum = "GITHUB_CLIENT_SECRET"
+	InfraConfigEnumGithubCallbackURL           InfraConfigEnum = "GITHUB_CALLBACK_URL"
+	InfraConfigEnumGithubScope                 InfraConfigEnum = "GITHUB_SCOPE"
+	InfraConfigEnumMicrosoftClientID           InfraConfigEnum = "MICROSOFT_CLIENT_ID"
+	InfraConfigEnumMicrosoftClientSecret       InfraConfigEnum = "MICROSOFT_CLIENT_SECRET"
+	InfraConfigEnumMicrosoftCallbackURL        InfraConfigEnum = "MICROSOFT_CALLBACK_URL"
+	InfraConfigEnumMicrosoftScope              InfraConfigEnum = "MICROSOFT_SCOPE"
+	InfraConfigEnumMicrosoftTenant             InfraConfigEnum = "MICROSOFT_TENANT"
+	InfraConfigEnumViteAllowedAuthProviders    InfraConfigEnum = "VITE_ALLOWED_AUTH_PROVIDERS"
+	InfraConfigEnumAllowAnalyticsCollection    InfraConfigEnum = "ALLOW_ANALYTICS_COLLECTION"
+	InfraConfigEnumAnalyticsUserID             InfraConfigEnum = "ANALYTICS_USER_ID"
+	InfraConfigEnumIsFirstTimeInfraSetup       InfraConfigEnum = "IS_FIRST_TIME_INFRA_SETUP"
+	InfraConfigEnumUserHistoryStoreEnabled     InfraConfigEnum = "USER_HISTORY_STORE_ENABLED"
 )
 
 var AllInfraConfigEnum = []InfraConfigEnum{
+	InfraConfigEnumOnboardingCompleted,
+	InfraConfigEnumOnboardingRecoveryToken,
+	InfraConfigEnumJwtSecret,
+	InfraConfigEnumSessionSecret,
+	InfraConfigEnumTokenSaltComplexity,
+	InfraConfigEnumMagicLinkTokenValidity,
+	InfraConfigEnumRefreshTokenValidity,
+	InfraConfigEnumAccessTokenValidity,
+	InfraConfigEnumAllowSecureCookies,
+	InfraConfigEnumRateLimitTTL,
+	InfraConfigEnumRateLimitMax,
+	InfraConfigEnumMailerSMTPEnable,
+	InfraConfigEnumMailerUseCustomConfigs,
 	InfraConfigEnumMailerSMTPURL,
 	InfraConfigEnumMailerAddressFrom,
+	InfraConfigEnumMailerSMTPHost,
+	InfraConfigEnumMailerSMTPPort,
+	InfraConfigEnumMailerSMTPSecure,
+	InfraConfigEnumMailerSMTPUser,
+	InfraConfigEnumMailerSMTPPassword,
+	InfraConfigEnumMailerTLSRejectUnauthorized,
 	InfraConfigEnumGoogleClientID,
 	InfraConfigEnumGoogleClientSecret,
+	InfraConfigEnumGoogleCallbackURL,
+	InfraConfigEnumGoogleScope,
 	InfraConfigEnumGithubClientID,
 	InfraConfigEnumGithubClientSecret,
+	InfraConfigEnumGithubCallbackURL,
+	InfraConfigEnumGithubScope,
 	InfraConfigEnumMicrosoftClientID,
 	InfraConfigEnumMicrosoftClientSecret,
+	InfraConfigEnumMicrosoftCallbackURL,
+	InfraConfigEnumMicrosoftScope,
+	InfraConfigEnumMicrosoftTenant,
+	InfraConfigEnumViteAllowedAuthProviders,
+	InfraConfigEnumAllowAnalyticsCollection,
+	InfraConfigEnumAnalyticsUserID,
+	InfraConfigEnumIsFirstTimeInfraSetup,
+	InfraConfigEnumUserHistoryStoreEnabled,
 }
 
 func (e InfraConfigEnum) IsValid() bool {
 	switch e {
-	case InfraConfigEnumMailerSMTPURL, InfraConfigEnumMailerAddressFrom, InfraConfigEnumGoogleClientID, InfraConfigEnumGoogleClientSecret, InfraConfigEnumGithubClientID, InfraConfigEnumGithubClientSecret, InfraConfigEnumMicrosoftClientID, InfraConfigEnumMicrosoftClientSecret:
+	case InfraConfigEnumOnboardingCompleted, InfraConfigEnumOnboardingRecoveryToken, InfraConfigEnumJwtSecret, InfraConfigEnumSessionSecret, InfraConfigEnumTokenSaltComplexity, InfraConfigEnumMagicLinkTokenValidity, InfraConfigEnumRefreshTokenValidity, InfraConfigEnumAccessTokenValidity, InfraConfigEnumAllowSecureCookies, InfraConfigEnumRateLimitTTL, InfraConfigEnumRateLimitMax, InfraConfigEnumMailerSMTPEnable, InfraConfigEnumMailerUseCustomConfigs, InfraConfigEnumMailerSMTPURL, InfraConfigEnumMailerAddressFrom, InfraConfigEnumMailerSMTPHost, InfraConfigEnumMailerSMTPPort, InfraConfigEnumMailerSMTPSecure, InfraConfigEnumMailerSMTPUser, InfraConfigEnumMailerSMTPPassword, InfraConfigEnumMailerTLSRejectUnauthorized, InfraConfigEnumGoogleClientID, InfraConfigEnumGoogleClientSecret, InfraConfigEnumGoogleCallbackURL, InfraConfigEnumGoogleScope, InfraConfigEnumGithubClientID, InfraConfigEnumGithubClientSecret, InfraConfigEnumGithubCallbackURL, InfraConfigEnumGithubScope, InfraConfigEnumMicrosoftClientID, InfraConfigEnumMicrosoftClientSecret, InfraConfigEnumMicrosoftCallbackURL, InfraConfigEnumMicrosoftScope, InfraConfigEnumMicrosoftTenant, InfraConfigEnumViteAllowedAuthProviders, InfraConfigEnumAllowAnalyticsCollection, InfraConfigEnumAnalyticsUserID, InfraConfigEnumIsFirstTimeInfraSetup, InfraConfigEnumUserHistoryStoreEnabled:
 		return true
 	}
 	return false
@@ -279,7 +374,7 @@ func (e InfraConfigEnum) String() string {
 	return string(e)
 }
 
-func (e *InfraConfigEnum) UnmarshalGQL(v interface{}) error {
+func (e *InfraConfigEnum) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -294,6 +389,20 @@ func (e *InfraConfigEnum) UnmarshalGQL(v interface{}) error {
 
 func (e InfraConfigEnum) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *InfraConfigEnum) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e InfraConfigEnum) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type ServiceStatus string
@@ -320,7 +429,7 @@ func (e ServiceStatus) String() string {
 	return string(e)
 }
 
-func (e *ServiceStatus) UnmarshalGQL(v interface{}) error {
+func (e *ServiceStatus) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -335,4 +444,73 @@ func (e *ServiceStatus) UnmarshalGQL(v interface{}) error {
 
 func (e ServiceStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *ServiceStatus) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e ServiceStatus) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type SortOptions string
+
+const (
+	SortOptionsTitleAsc  SortOptions = "TITLE_ASC"
+	SortOptionsTitleDesc SortOptions = "TITLE_DESC"
+)
+
+var AllSortOptions = []SortOptions{
+	SortOptionsTitleAsc,
+	SortOptionsTitleDesc,
+}
+
+func (e SortOptions) IsValid() bool {
+	switch e {
+	case SortOptionsTitleAsc, SortOptionsTitleDesc:
+		return true
+	}
+	return false
+}
+
+func (e SortOptions) String() string {
+	return string(e)
+}
+
+func (e *SortOptions) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SortOptions(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SortOptions", str)
+	}
+	return nil
+}
+
+func (e SortOptions) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *SortOptions) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e SortOptions) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }

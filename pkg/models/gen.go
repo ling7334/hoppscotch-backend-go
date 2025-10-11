@@ -16,31 +16,37 @@ import (
 )
 
 var (
-	Q                 = new(Query)
-	Account           *account
-	InfraConfig       *infraConfig
-	InvitedUser       *invitedUser
-	Shortcode         *shortcode
-	Team              *team
-	TeamCollection    *teamCollection
-	TeamEnvironment   *teamEnvironment
-	TeamInvitation    *teamInvitation
-	TeamMember        *teamMember
-	TeamRequest       *teamRequest
-	User              *user
-	UserCollection    *userCollection
-	UserEnvironment   *userEnvironment
-	UserHistory       *userHistory
-	UserRequest       *userRequest
-	UserSetting       *userSetting
-	VerificationToken *verificationToken
+	Q                   = new(Query)
+	Account             *account
+	InfraConfig         *infraConfig
+	InfraToken          *infraToken
+	InvitedUser         *invitedUser
+	PersonalAccessToken *personalAccessToken
+	PrismaMigration     *prismaMigration
+	Shortcode           *shortcode
+	Team                *team
+	TeamCollection      *teamCollection
+	TeamEnvironment     *teamEnvironment
+	TeamInvitation      *teamInvitation
+	TeamMember          *teamMember
+	TeamRequest         *teamRequest
+	User                *user
+	UserCollection      *userCollection
+	UserEnvironment     *userEnvironment
+	UserHistory         *userHistory
+	UserRequest         *userRequest
+	UserSetting         *userSetting
+	VerificationToken   *verificationToken
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	Account = &Q.Account
 	InfraConfig = &Q.InfraConfig
+	InfraToken = &Q.InfraToken
 	InvitedUser = &Q.InvitedUser
+	PersonalAccessToken = &Q.PersonalAccessToken
+	PrismaMigration = &Q.PrismaMigration
 	Shortcode = &Q.Shortcode
 	Team = &Q.Team
 	TeamCollection = &Q.TeamCollection
@@ -59,71 +65,80 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:                db,
-		Account:           newAccount(db, opts...),
-		InfraConfig:       newInfraConfig(db, opts...),
-		InvitedUser:       newInvitedUser(db, opts...),
-		Shortcode:         newShortcode(db, opts...),
-		Team:              newTeam(db, opts...),
-		TeamCollection:    newTeamCollection(db, opts...),
-		TeamEnvironment:   newTeamEnvironment(db, opts...),
-		TeamInvitation:    newTeamInvitation(db, opts...),
-		TeamMember:        newTeamMember(db, opts...),
-		TeamRequest:       newTeamRequest(db, opts...),
-		User:              newUser(db, opts...),
-		UserCollection:    newUserCollection(db, opts...),
-		UserEnvironment:   newUserEnvironment(db, opts...),
-		UserHistory:       newUserHistory(db, opts...),
-		UserRequest:       newUserRequest(db, opts...),
-		UserSetting:       newUserSetting(db, opts...),
-		VerificationToken: newVerificationToken(db, opts...),
+		db:                  db,
+		Account:             newAccount(db, opts...),
+		InfraConfig:         newInfraConfig(db, opts...),
+		InfraToken:          newInfraToken(db, opts...),
+		InvitedUser:         newInvitedUser(db, opts...),
+		PersonalAccessToken: newPersonalAccessToken(db, opts...),
+		PrismaMigration:     newPrismaMigration(db, opts...),
+		Shortcode:           newShortcode(db, opts...),
+		Team:                newTeam(db, opts...),
+		TeamCollection:      newTeamCollection(db, opts...),
+		TeamEnvironment:     newTeamEnvironment(db, opts...),
+		TeamInvitation:      newTeamInvitation(db, opts...),
+		TeamMember:          newTeamMember(db, opts...),
+		TeamRequest:         newTeamRequest(db, opts...),
+		User:                newUser(db, opts...),
+		UserCollection:      newUserCollection(db, opts...),
+		UserEnvironment:     newUserEnvironment(db, opts...),
+		UserHistory:         newUserHistory(db, opts...),
+		UserRequest:         newUserRequest(db, opts...),
+		UserSetting:         newUserSetting(db, opts...),
+		VerificationToken:   newVerificationToken(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	Account           account
-	InfraConfig       infraConfig
-	InvitedUser       invitedUser
-	Shortcode         shortcode
-	Team              team
-	TeamCollection    teamCollection
-	TeamEnvironment   teamEnvironment
-	TeamInvitation    teamInvitation
-	TeamMember        teamMember
-	TeamRequest       teamRequest
-	User              user
-	UserCollection    userCollection
-	UserEnvironment   userEnvironment
-	UserHistory       userHistory
-	UserRequest       userRequest
-	UserSetting       userSetting
-	VerificationToken verificationToken
+	Account             account
+	InfraConfig         infraConfig
+	InfraToken          infraToken
+	InvitedUser         invitedUser
+	PersonalAccessToken personalAccessToken
+	PrismaMigration     prismaMigration
+	Shortcode           shortcode
+	Team                team
+	TeamCollection      teamCollection
+	TeamEnvironment     teamEnvironment
+	TeamInvitation      teamInvitation
+	TeamMember          teamMember
+	TeamRequest         teamRequest
+	User                user
+	UserCollection      userCollection
+	UserEnvironment     userEnvironment
+	UserHistory         userHistory
+	UserRequest         userRequest
+	UserSetting         userSetting
+	VerificationToken   verificationToken
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:                db,
-		Account:           q.Account.clone(db),
-		InfraConfig:       q.InfraConfig.clone(db),
-		InvitedUser:       q.InvitedUser.clone(db),
-		Shortcode:         q.Shortcode.clone(db),
-		Team:              q.Team.clone(db),
-		TeamCollection:    q.TeamCollection.clone(db),
-		TeamEnvironment:   q.TeamEnvironment.clone(db),
-		TeamInvitation:    q.TeamInvitation.clone(db),
-		TeamMember:        q.TeamMember.clone(db),
-		TeamRequest:       q.TeamRequest.clone(db),
-		User:              q.User.clone(db),
-		UserCollection:    q.UserCollection.clone(db),
-		UserEnvironment:   q.UserEnvironment.clone(db),
-		UserHistory:       q.UserHistory.clone(db),
-		UserRequest:       q.UserRequest.clone(db),
-		UserSetting:       q.UserSetting.clone(db),
-		VerificationToken: q.VerificationToken.clone(db),
+		db:                  db,
+		Account:             q.Account.clone(db),
+		InfraConfig:         q.InfraConfig.clone(db),
+		InfraToken:          q.InfraToken.clone(db),
+		InvitedUser:         q.InvitedUser.clone(db),
+		PersonalAccessToken: q.PersonalAccessToken.clone(db),
+		PrismaMigration:     q.PrismaMigration.clone(db),
+		Shortcode:           q.Shortcode.clone(db),
+		Team:                q.Team.clone(db),
+		TeamCollection:      q.TeamCollection.clone(db),
+		TeamEnvironment:     q.TeamEnvironment.clone(db),
+		TeamInvitation:      q.TeamInvitation.clone(db),
+		TeamMember:          q.TeamMember.clone(db),
+		TeamRequest:         q.TeamRequest.clone(db),
+		User:                q.User.clone(db),
+		UserCollection:      q.UserCollection.clone(db),
+		UserEnvironment:     q.UserEnvironment.clone(db),
+		UserHistory:         q.UserHistory.clone(db),
+		UserRequest:         q.UserRequest.clone(db),
+		UserSetting:         q.UserSetting.clone(db),
+		VerificationToken:   q.VerificationToken.clone(db),
 	}
 }
 
@@ -137,66 +152,75 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:                db,
-		Account:           q.Account.replaceDB(db),
-		InfraConfig:       q.InfraConfig.replaceDB(db),
-		InvitedUser:       q.InvitedUser.replaceDB(db),
-		Shortcode:         q.Shortcode.replaceDB(db),
-		Team:              q.Team.replaceDB(db),
-		TeamCollection:    q.TeamCollection.replaceDB(db),
-		TeamEnvironment:   q.TeamEnvironment.replaceDB(db),
-		TeamInvitation:    q.TeamInvitation.replaceDB(db),
-		TeamMember:        q.TeamMember.replaceDB(db),
-		TeamRequest:       q.TeamRequest.replaceDB(db),
-		User:              q.User.replaceDB(db),
-		UserCollection:    q.UserCollection.replaceDB(db),
-		UserEnvironment:   q.UserEnvironment.replaceDB(db),
-		UserHistory:       q.UserHistory.replaceDB(db),
-		UserRequest:       q.UserRequest.replaceDB(db),
-		UserSetting:       q.UserSetting.replaceDB(db),
-		VerificationToken: q.VerificationToken.replaceDB(db),
+		db:                  db,
+		Account:             q.Account.replaceDB(db),
+		InfraConfig:         q.InfraConfig.replaceDB(db),
+		InfraToken:          q.InfraToken.replaceDB(db),
+		InvitedUser:         q.InvitedUser.replaceDB(db),
+		PersonalAccessToken: q.PersonalAccessToken.replaceDB(db),
+		PrismaMigration:     q.PrismaMigration.replaceDB(db),
+		Shortcode:           q.Shortcode.replaceDB(db),
+		Team:                q.Team.replaceDB(db),
+		TeamCollection:      q.TeamCollection.replaceDB(db),
+		TeamEnvironment:     q.TeamEnvironment.replaceDB(db),
+		TeamInvitation:      q.TeamInvitation.replaceDB(db),
+		TeamMember:          q.TeamMember.replaceDB(db),
+		TeamRequest:         q.TeamRequest.replaceDB(db),
+		User:                q.User.replaceDB(db),
+		UserCollection:      q.UserCollection.replaceDB(db),
+		UserEnvironment:     q.UserEnvironment.replaceDB(db),
+		UserHistory:         q.UserHistory.replaceDB(db),
+		UserRequest:         q.UserRequest.replaceDB(db),
+		UserSetting:         q.UserSetting.replaceDB(db),
+		VerificationToken:   q.VerificationToken.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	Account           IAccountDo
-	InfraConfig       IInfraConfigDo
-	InvitedUser       IInvitedUserDo
-	Shortcode         IShortcodeDo
-	Team              ITeamDo
-	TeamCollection    ITeamCollectionDo
-	TeamEnvironment   ITeamEnvironmentDo
-	TeamInvitation    ITeamInvitationDo
-	TeamMember        ITeamMemberDo
-	TeamRequest       ITeamRequestDo
-	User              IUserDo
-	UserCollection    IUserCollectionDo
-	UserEnvironment   IUserEnvironmentDo
-	UserHistory       IUserHistoryDo
-	UserRequest       IUserRequestDo
-	UserSetting       IUserSettingDo
-	VerificationToken IVerificationTokenDo
+	Account             IAccountDo
+	InfraConfig         IInfraConfigDo
+	InfraToken          IInfraTokenDo
+	InvitedUser         IInvitedUserDo
+	PersonalAccessToken IPersonalAccessTokenDo
+	PrismaMigration     IPrismaMigrationDo
+	Shortcode           IShortcodeDo
+	Team                ITeamDo
+	TeamCollection      ITeamCollectionDo
+	TeamEnvironment     ITeamEnvironmentDo
+	TeamInvitation      ITeamInvitationDo
+	TeamMember          ITeamMemberDo
+	TeamRequest         ITeamRequestDo
+	User                IUserDo
+	UserCollection      IUserCollectionDo
+	UserEnvironment     IUserEnvironmentDo
+	UserHistory         IUserHistoryDo
+	UserRequest         IUserRequestDo
+	UserSetting         IUserSettingDo
+	VerificationToken   IVerificationTokenDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Account:           q.Account.WithContext(ctx),
-		InfraConfig:       q.InfraConfig.WithContext(ctx),
-		InvitedUser:       q.InvitedUser.WithContext(ctx),
-		Shortcode:         q.Shortcode.WithContext(ctx),
-		Team:              q.Team.WithContext(ctx),
-		TeamCollection:    q.TeamCollection.WithContext(ctx),
-		TeamEnvironment:   q.TeamEnvironment.WithContext(ctx),
-		TeamInvitation:    q.TeamInvitation.WithContext(ctx),
-		TeamMember:        q.TeamMember.WithContext(ctx),
-		TeamRequest:       q.TeamRequest.WithContext(ctx),
-		User:              q.User.WithContext(ctx),
-		UserCollection:    q.UserCollection.WithContext(ctx),
-		UserEnvironment:   q.UserEnvironment.WithContext(ctx),
-		UserHistory:       q.UserHistory.WithContext(ctx),
-		UserRequest:       q.UserRequest.WithContext(ctx),
-		UserSetting:       q.UserSetting.WithContext(ctx),
-		VerificationToken: q.VerificationToken.WithContext(ctx),
+		Account:             q.Account.WithContext(ctx),
+		InfraConfig:         q.InfraConfig.WithContext(ctx),
+		InfraToken:          q.InfraToken.WithContext(ctx),
+		InvitedUser:         q.InvitedUser.WithContext(ctx),
+		PersonalAccessToken: q.PersonalAccessToken.WithContext(ctx),
+		PrismaMigration:     q.PrismaMigration.WithContext(ctx),
+		Shortcode:           q.Shortcode.WithContext(ctx),
+		Team:                q.Team.WithContext(ctx),
+		TeamCollection:      q.TeamCollection.WithContext(ctx),
+		TeamEnvironment:     q.TeamEnvironment.WithContext(ctx),
+		TeamInvitation:      q.TeamInvitation.WithContext(ctx),
+		TeamMember:          q.TeamMember.WithContext(ctx),
+		TeamRequest:         q.TeamRequest.WithContext(ctx),
+		User:                q.User.WithContext(ctx),
+		UserCollection:      q.UserCollection.WithContext(ctx),
+		UserEnvironment:     q.UserEnvironment.WithContext(ctx),
+		UserHistory:         q.UserHistory.WithContext(ctx),
+		UserRequest:         q.UserRequest.WithContext(ctx),
+		UserSetting:         q.UserSetting.WithContext(ctx),
+		VerificationToken:   q.VerificationToken.WithContext(ctx),
 	}
 }
 

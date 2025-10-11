@@ -22,6 +22,12 @@ type User {
   """Flag to determine if user is an Admin or not"""
   isAdmin: Boolean!
 
+  """Date when the user last logged in"""
+  lastLoggedOn: DateTime
+
+  """Date when the user last interacted with the app"""
+  lastActiveOn: DateTime
+
   """Date when the user account was created"""
   createdOn: DateTime!
 
@@ -30,15 +36,6 @@ type User {
 
   """Stringified current GraphQL session for logged-in User"""
   currentGQLSession: String
-
-  """Returns user settings"""
-  settings: UserSettings!
-
-  """Returns a list of users personal environments"""
-  environments: [UserEnvironment!]!
-
-  """Returns the users global environments"""
-  globalEnvironments: UserEnvironment!
 
   """Returns a users REST history"""
   RESTHistory(
@@ -57,12 +54,92 @@ type User {
     """Number of items to fetch"""
     take: Int = 10
   ): [UserHistory!]!
+
+  """Returns user settings"""
+  settings: UserSettings!
+
+  """Returns a list of users personal environments"""
+  environments: [UserEnvironment!]!
+
+  """Returns the users global environments"""
+  globalEnvironments: UserEnvironment!
 }
 
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+scalar Int64
+
+type UserDeletionResult {
+  """UID of the user"""
+  userUID: ID!
+
+  """Flag to determine if user deletion was successful or not"""
+  isDeleted: Boolean!
+
+  """Error message if user deletion was not successful"""
+  errorMessage: String
+}
+
+type Team {
+  """ID of the team"""
+  id: ID!
+
+  """Displayed name of the team"""
+  name: String!
+
+  """Returns the list of members of a team"""
+  members(
+    """The ID of the last returned team member entry (used for pagination)"""
+    cursor: ID
+  ): [TeamMember!]!
+
+  """Returns the list of members of a team"""
+  teamMembers: [TeamMember!]!
+
+  """The role of the current user in the team"""
+  myRole: TeamAccessRole
+
+  """The number of users with the OWNER role in the team"""
+  ownersCount: Int64!
+
+  """The number of users with the EDITOR role in the team"""
+  editorsCount: Int64!
+
+  """The number of users with the VIEWER role in the team"""
+  viewersCount: Int64!
+
+  """Get all the active invites in the team"""
+  teamInvitations: [TeamInvitation!]!
+
+  """Returns all Team Environments for the given Team"""
+  teamEnvironments: [TeamEnvironment!]!
+}
+
+enum TeamAccessRole {
+  OWNER
+  VIEWER
+  EDITOR
+}
+
+type TeamMember {
+  """Membership ID of the Team Member"""
+  membershipID: ID!
+
+  """Role of the given team member in the given team"""
+  role: TeamAccessRole!
+  user: User!
+}
+
+type InfraConfig {
+  """Infra Config Name"""
+  name: String!
+
+  """Infra Config Value"""
+  value: String!
+}
 
 type UserSettings {
   """ID of the User Setting"""
@@ -93,6 +170,42 @@ type UserEnvironment {
 
   """Flag to indicate the environment is global or not"""
   isGlobal: Boolean!
+}
+
+type UserRequest {
+  """ID of the user request"""
+  id: ID!
+
+  """ID of the parent collection ID"""
+  collectionID: ID!
+
+  """Title of the user request"""
+  title: String!
+
+  """Content/Body of the user request"""
+  request: String!
+
+  """Type (GRAPHQL/REST) of the user request"""
+  type: ReqType!
+
+  """Date of the user request creation"""
+  createdOn: DateTime!
+
+  """Returns the user of the user request"""
+  user: User!
+}
+
+enum ReqType {
+  REST
+  GQL
+}
+
+type UserRequestReorderData {
+  """User request being moved"""
+  request: UserRequest!
+
+  """User request succeeding the request being moved in its new position"""
+  nextRequest: UserRequest
 }
 
 type UserCollection {
@@ -142,11 +255,6 @@ type UserCollection {
   ): [UserCollection!]!
 }
 
-enum ReqType {
-  REST
-  GQL
-}
-
 type UserCollectionReorderData {
   """User Collection being moved"""
   userCollection: UserCollection!
@@ -173,35 +281,30 @@ type UserCollectionExportJSONData {
   collectionType: ReqType!
 }
 
-type UserRequest {
-  """ID of the user request"""
+type UserCollectionDuplicatedData {
+  """ID of the user collection"""
   id: ID!
 
-  """ID of the parent collection ID"""
-  collectionID: ID!
-
-  """Title of the user request"""
+  """Displayed title of the user collection"""
   title: String!
 
-  """Content/Body of the user request"""
-  request: String!
+  """JSON string representing the collection data"""
+  data: String
 
-  """Type (GRAPHQL/REST) of the user request"""
+  """Type of the user collection"""
   type: ReqType!
 
-  """Date of the user request creation"""
-  createdOn: DateTime!
+  """Parent ID of the duplicated User Collection"""
+  parentID: String
 
-  """Returns the user of the user request"""
-  user: User!
-}
+  """User ID of the duplicated User Collection"""
+  userID: String!
 
-type UserRequestReorderData {
-  """User request being moved"""
-  request: UserRequest!
+  """Child collections of the duplicated User Collection"""
+  childCollections: String!
 
-  """User request succeeding the request being moved in its new position"""
-  nextRequest: UserRequest
+  """Requests of the duplicated User Collection"""
+  requests: [UserRequest!]!
 }
 
 type UserHistory {
@@ -233,58 +336,6 @@ type UserHistoryDeletedManyData {
 
   """Type of the request in the history"""
   reqType: ReqType!
-}
-
-scalar Int64
-
-type Team {
-  """ID of the team"""
-  id: ID!
-
-  """Displayed name of the team"""
-  name: String!
-
-  """Returns the list of members of a team"""
-  members(
-    """The ID of the last returned team member entry (used for pagination)"""
-    cursor: ID
-  ): [TeamMember!]!
-
-  """Returns the list of members of a team"""
-  teamMembers: [TeamMember!]!
-
-  """The role of the current user in the team"""
-  myRole: TeamMemberRole
-
-  """The number of users with the OWNER role in the team"""
-  ownersCount: Int64!
-
-  """The number of users with the EDITOR role in the team"""
-  editorsCount: Int64!
-
-  """The number of users with the VIEWER role in the team"""
-  viewersCount: Int64!
-
-  """Get all the active invites in the team"""
-  teamInvitations: [TeamInvitation!]!
-
-  """Returns all Team Environments for the given Team"""
-  teamEnvironments: [TeamEnvironment!]!
-}
-
-enum TeamMemberRole {
-  OWNER
-  VIEWER
-  EDITOR
-}
-
-type TeamMember {
-  """Membership ID of the Team Member"""
-  membershipID: ID!
-
-  """Role of the given team member in the given team"""
-  role: TeamMemberRole!
-  user: User!
 }
 
 type TeamEnvironment {
@@ -385,7 +436,7 @@ type TeamInvitation {
   inviteeEmail: String!
 
   """The role that will be given to the invitee"""
-  inviteeRole: TeamMemberRole!
+  inviteeRole: TeamAccessRole!
 
   """Get the team associated to the invite"""
   team: Team!
@@ -407,86 +458,14 @@ type Admin {
   """URL to the profile photo of the user (if fetched)"""
   photoURL: String
 
+  """Date when the user last logged in"""
+  lastLoggedOn: DateTime
+
+  """Date when the user last interacted with the app"""
+  lastActiveOn: DateTime
+
   """Date when the user account was created"""
   createdOn: DateTime!
-
-  """Returns a list of all admin users in infra"""
-  admins: [User!]! @deprecated(reason: "Use `infra` query instead")
-
-  """Returns a user info by UID"""
-  userInfo(
-    """The user UID"""
-    userUid: ID!
-  ): User! @deprecated(reason: "Use `infra` query instead")
-
-  """Returns a list of all the users in infra"""
-  allUsers(
-    """Cursor for pagination, ID of the last item in the list"""
-    cursor: ID
-
-    """Number of items to fetch"""
-    take: Int = 10
-  ): [User!]! @deprecated(reason: "Use `infra` query instead")
-
-  """Returns a list of all the invited users"""
-  invitedUsers: [InvitedUser!]! @deprecated(reason: "Use `infra` query instead")
-
-  """Returns a list of all the teams in the infra"""
-  allTeams(
-    """Cursor for pagination, ID of the last item in the list"""
-    cursor: ID
-
-    """Number of items to fetch"""
-    take: Int = 10
-  ): [Team!]! @deprecated(reason: "Use `infra` query instead")
-
-  """Returns a team info by ID when requested by Admin"""
-  teamInfo(
-    """Team ID for which info to fetch"""
-    teamID: ID!
-  ): Team! @deprecated(reason: "Use `infra` query instead")
-
-  """Return count of all the members in a team"""
-  membersCountInTeam(
-    """Team ID for which team members to fetch"""
-    teamID: ID!
-  ): Int! @deprecated(reason: "Use `infra` query instead")
-
-  """Return count of all the stored collections in a team"""
-  collectionCountInTeam(
-    """Team ID for which team members to fetch"""
-    teamID: ID!
-  ): Int! @deprecated(reason: "Use `infra` query instead")
-
-  """Return count of all the stored requests in a team"""
-  requestCountInTeam(
-    """Team ID for which team members to fetch"""
-    teamID: ID!
-  ): Int! @deprecated(reason: "Use `infra` query instead")
-
-  """Return count of all the stored environments in a team"""
-  environmentCountInTeam(
-    """Team ID for which team members to fetch"""
-    teamID: ID!
-  ): Int! @deprecated(reason: "Use `infra` query instead")
-
-  """Return all the pending invitations in a team"""
-  pendingInvitationCountInTeam(
-    """Team ID for which team members to fetch"""
-    teamID: ID!
-  ): [TeamInvitation!]! @deprecated(reason: "Use `infra` query instead")
-
-  """Return total number of Users in organization"""
-  usersCount: Int! @deprecated(reason: "Use `infra` query instead")
-
-  """Return total number of Teams in organization"""
-  teamsCount: Int! @deprecated(reason: "Use `infra` query instead")
-
-  """Return total number of Team Collections in organization"""
-  teamCollectionsCount: Int! @deprecated(reason: "Use `infra` query instead")
-
-  """Return total number of Team Requests in organization"""
-  teamRequestsCount: Int! @deprecated(reason: "Use `infra` query instead")
 }
 
 type InvitedUser {
@@ -523,10 +502,28 @@ type Infra {
 
     """Number of items to fetch"""
     take: Int = 10
+  ): [User!]! @deprecated(reason: "Use allUsersV2 instead")
+
+  """Returns a list of all the users in infra"""
+  allUsersV2(
+    """Search on users displayName or email"""
+    searchString: String
+
+    """Number of items to skip"""
+    skip: Int = 0
+
+    """Number of items to fetch"""
+    take: Int = 10
   ): [User!]! @goField(forceResolver: true)
 
   """Returns a list of all the invited users"""
-  invitedUsers: [InvitedUser!]!
+  invitedUsers(
+    """Number of items to skip"""
+    skip: Int = 0
+
+    """Number of items to fetch"""
+    take: Int = 10
+  ): [InvitedUser!]! @goField(forceResolver: true)
 
   """Returns a list of all the teams in the infra"""
   allTeams(
@@ -547,25 +544,25 @@ type Infra {
   membersCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): Int64! @goField(forceResolver: true)
+  ): Int64!  @goField(forceResolver: true)
 
   """Return count of all the stored collections in a team"""
   collectionCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): Int64! @goField(forceResolver: true)
+  ): Int64!  @goField(forceResolver: true)
 
   """Return count of all the stored requests in a team"""
   requestCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): Int64! @goField(forceResolver: true)
+  ): Int64!  @goField(forceResolver: true)
 
   """Return count of all the stored environments in a team"""
   environmentCountInTeam(
     """Team ID for which team members to fetch"""
     teamID: ID!
-  ): Int64! @goField(forceResolver: true)
+  ): Int64!  @goField(forceResolver: true)
 
   """Return all the pending invitations in a team"""
   pendingInvitationCountInTeam(
@@ -637,12 +634,42 @@ type ShortcodeWithUserEmail {
   creator: ShortcodeCreator
 }
 
-type InfraConfig {
-  """Infra Config Name"""
-  name: String!
+type InfraToken {
+  """ID of the infra token"""
+  id: ID!
 
-  """Infra Config Value"""
-  value: String!
+  """Label of the infra token"""
+  label: String!
+
+  """Date when the infra token was created"""
+  createdOn: DateTime!
+
+  """Date when the infra token expires"""
+  expiresOn: DateTime
+
+  """Date when the infra token was last used"""
+  lastUsedOn: DateTime!
+}
+
+type CreateInfraTokenResponse {
+  """The infra token"""
+  token: String!
+
+  """Infra token info"""
+  info: InfraToken!
+}
+
+type UserCollectionSortData {
+  """ID of the parent collection"""
+  parentCollectionID: ID
+
+  """Sorting option"""
+  sortOption: SortOptions!
+}
+
+enum SortOptions {
+  TITLE_ASC
+  TITLE_DESC
 }
 
 type Query {
@@ -650,6 +677,12 @@ type Query {
   Gives details of the user executing this query (pass Authorization 'Bearer' header)
   """
   me: User! @isLogin
+
+  """Check if the SMTP is enabled or not"""
+  isSMTPEnabled: Boolean! @isAdmin
+
+  """Check if user history is enabled or not"""
+  isUserHistoryEnabled: InfraConfig! @isAdmin
 
   """Fetch details of the Infrastructure"""
   infra: Infra! @isAdmin
@@ -690,6 +723,15 @@ type Query {
   exportCollectionsToJSON(
     """ID of the team"""
     teamID: ID!
+  ): String! @isLogin
+
+  """Returns a JSON string of all the contents of a Team Collection"""
+  exportCollectionToJSON(
+    """ID of the team"""
+    teamID: ID!
+
+    """ID of the collection"""
+    collectionID: ID!
   ): String! @isLogin
 
   """Returns the collections of a team"""
@@ -822,17 +864,63 @@ type Query {
     """Type of the user collection"""
     collectionType: ReqType!
   ): UserCollectionExportJSONData! @isLogin
+
+  """Returns a JSON string of all the contents of a User Collection"""
+  exportUserCollectionToJSON(
+    """ID of the user collection"""
+    collectionID: ID!
+  ): String! @isLogin
+
+  """Get list of infra tokens"""
+  infraTokens(
+    """Number of items to skip"""
+    skip: Int = 0
+
+    """Number of items to fetch"""
+    take: Int = 10
+  ): [InfraToken!]! @isAdmin
 }
 
 enum InfraConfigEnum {
+  ONBOARDING_COMPLETED
+  ONBOARDING_RECOVERY_TOKEN
+  JWT_SECRET
+  SESSION_SECRET
+  TOKEN_SALT_COMPLEXITY
+  MAGIC_LINK_TOKEN_VALIDITY
+  REFRESH_TOKEN_VALIDITY
+  ACCESS_TOKEN_VALIDITY
+  ALLOW_SECURE_COOKIES
+  RATE_LIMIT_TTL
+  RATE_LIMIT_MAX
+  MAILER_SMTP_ENABLE
+  MAILER_USE_CUSTOM_CONFIGS
   MAILER_SMTP_URL
   MAILER_ADDRESS_FROM
+  MAILER_SMTP_HOST
+  MAILER_SMTP_PORT
+  MAILER_SMTP_SECURE
+  MAILER_SMTP_USER
+  MAILER_SMTP_PASSWORD
+  MAILER_TLS_REJECT_UNAUTHORIZED
   GOOGLE_CLIENT_ID
   GOOGLE_CLIENT_SECRET
+  GOOGLE_CALLBACK_URL
+  GOOGLE_SCOPE
   GITHUB_CLIENT_ID
   GITHUB_CLIENT_SECRET
+  GITHUB_CALLBACK_URL
+  GITHUB_SCOPE
   MICROSOFT_CLIENT_ID
   MICROSOFT_CLIENT_SECRET
+  MICROSOFT_CALLBACK_URL
+  MICROSOFT_SCOPE
+  MICROSOFT_TENANT
+  VITE_ALLOWED_AUTH_PROVIDERS
+  ALLOW_ANALYTICS_COLLECTION
+  ANALYTICS_USER_ID
+  IS_FIRST_TIME_INFRA_SETUP
+  USER_HISTORY_STORE_ENABLED
 }
 
 type Mutation {
@@ -845,6 +933,12 @@ type Mutation {
     sessionType: SessionType!
   ): User! @isLogin
 
+  """Update a users display name"""
+  updateDisplayName(
+    """New name of user"""
+    updatedDisplayName: String!
+  ): User! @isLogin
+
   """Delete an user account"""
   deleteUser: Boolean! @isAdmin
 
@@ -853,6 +947,12 @@ type Mutation {
     """InfraConfigs to update"""
     infraConfigs: [InfraConfigArgs!]!
   ): [InfraConfig!]! @isAdmin
+
+  """Enable or disable analytics collection"""
+  toggleAnalyticsCollection(
+    """Toggle analytics collection"""
+    status: ServiceStatus!
+  ): Boolean! @isAdmin
 
   """Reset Infra Configs with default values (.env)"""
   resetInfraConfigs: Boolean! @isAdmin
@@ -863,28 +963,73 @@ type Mutation {
     providerInfo: [EnableAndDisableSSOArgs!]!
   ): Boolean! @isAdmin
 
+  """Enable or Disable SMTP for sending emails"""
+  toggleSMTP(
+    """Toggle SMTP"""
+    status: ServiceStatus!
+  ): Boolean! @isAdmin
+
+  """Enable or Disable User History Storing in DB"""
+  toggleUserHistoryStore(
+    """Toggle User History Store"""
+    status: ServiceStatus!
+  ): Boolean! @isAdmin
+
   """Invite a user to the infra using email"""
   inviteNewUser(
     """invitee email"""
     inviteeEmail: String!
   ): InvitedUser! @isAdmin
 
+  """Revoke a user invites by invitee emails"""
+  revokeUserInvitationsByAdmin(
+    """Invitee Emails"""
+    inviteeEmails: [String!]!
+  ): Boolean! @isAdmin
+
   """Delete an user account from infra"""
   removeUserByAdmin(
     """users UID"""
     userUID: ID!
-  ): Boolean! @isAdmin
+  ): Boolean! @deprecated(reason: "Use removeUsersByAdmin instead")
+
+  """Delete user accounts from infra"""
+  removeUsersByAdmin(
+    """users UID"""
+    userUIDs: [ID!]!
+  ): [UserDeletionResult!]! @isAdmin
 
   """Make user an admin"""
   makeUserAdmin(
     """users UID"""
     userUID: ID!
+  ): Boolean! @deprecated(reason: "Use makeUsersAdmin instead")
+
+  """Make users an admin"""
+  makeUsersAdmin(
+    """users UID"""
+    userUIDs: [ID!]!
+  ): Boolean! @isAdmin
+
+  """Update user display name"""
+  updateUserDisplayNameByAdmin(
+    """users UID"""
+    userUID: ID!
+
+    """users display name"""
+    displayName: String!
   ): Boolean! @isAdmin
 
   """Remove user as admin"""
   removeUserAsAdmin(
     """users UID"""
     userUID: ID!
+  ): Boolean! @deprecated(reason: "Use demoteUsersByAdmin instead")
+
+  """Remove users as admin"""
+  demoteUsersByAdmin(
+    """users UID"""
+    userUIDs: [ID!]!
   ): Boolean! @isAdmin
 
   """Create a new team by providing the user uid to nominate as Team owner"""
@@ -905,7 +1050,7 @@ type Mutation {
     teamID: ID!
 
     """updated team role"""
-    newRole: TeamMemberRole!
+    newRole: TeamAccessRole!
   ): TeamMember! @isAdmin
 
   """Remove the user from a team"""
@@ -923,7 +1068,7 @@ type Mutation {
     teamID: ID!
 
     """The role of the user to add in the team"""
-    role: TeamMemberRole!
+    role: TeamAccessRole!
 
     """Email of the user to add to team"""
     userEmail: String!
@@ -955,6 +1100,9 @@ type Mutation {
     """The shortcode to delete"""
     code: ID!
   ): Boolean! @isAdmin
+
+  """Revoke all User History"""
+  revokeAllUserHistoryByAdmin: Boolean! @isAdmin
 
   """Creates a team owned by the executing user"""
   createTeam(
@@ -993,7 +1141,7 @@ type Mutation {
   ): Boolean! @isLogin
 
   """Update role of a team member the executing user owns"""
-  updateTeamMemberRole(
+  updateTeamAccessRole(
     """ID of the affected team"""
     teamID: ID!
 
@@ -1001,7 +1149,7 @@ type Mutation {
     userUid: ID!
 
     """Updated role value"""
-    newRole: TeamMemberRole!
+    newRole: TeamAccessRole!
   ): TeamMember! @isLogin
 
   """Creates a Team Invitation"""
@@ -1013,7 +1161,7 @@ type Mutation {
     inviteeEmail: String!
 
     """Role to be given to the user"""
-    inviteeRole: TeamMemberRole!
+    inviteeRole: TeamAccessRole!
   ): TeamInvitation! @isLogin
 
   """Revokes an invitation and deletes it"""
@@ -1100,22 +1248,6 @@ type Mutation {
     parentCollectionID: ID
   ): Boolean! @isLogin
 
-  """
-  Replace existing collections of a specific team with collections in JSON string
-  """
-  replaceCollectionsWithJSON(
-    """Id of the team to add to"""
-    teamID: ID!
-
-    """JSON string to replace with"""
-    jsonString: String!
-
-    """
-    ID to the collection to which to import to (null if to import to the root of team)
-    """
-    parentCollectionID: ID
-  ): Boolean! @isLogin
-
   """Create a collection that has a parent collection"""
   createChildCollection(
     """ID of the parent to the new collection"""
@@ -1174,6 +1306,12 @@ type Mutation {
     """JSON string representing the collection data"""
     data: String
   ): TeamCollection! @isLogin
+
+  """Duplicate a Team Collection"""
+  duplicateTeamCollection(
+    """ID of the collection"""
+    collectionID: String!
+  ): Boolean! @isLogin
 
   """Create a team request in the given collection."""
   createRequestInCollection(
@@ -1256,6 +1394,36 @@ type Mutation {
     code: ID!
   ): Boolean! @isLogin
 
+  """Adds a new REST/GQL request to user history"""
+  createUserHistory(
+    """JSON string of the request data"""
+    reqData: String!
+
+    """JSON string of the response metadata"""
+    resMetadata: String!
+
+    """Request type, REST or GQL"""
+    reqType: ReqType!
+  ): UserHistory! @isLogin
+
+  """Stars/Unstars a REST/GQL request in user history"""
+  toggleHistoryStarStatus(
+    """ID of User History"""
+    id: ID!
+  ): UserHistory! @isLogin
+
+  """Removes a REST/GQL request from user history"""
+  removeRequestFromHistory(
+    """ID of User History"""
+    id: ID!
+  ): UserHistory! @isLogin
+
+  """Deletes all REST/GQL history for a user based on Request type"""
+  deleteAllUserHistory(
+    """Request type, REST or GQL"""
+    reqType: ReqType!
+  ): UserHistoryDeletedManyData! @isLogin
+
   """Creates a new user setting"""
   createUserSettings(
     """Stringified JSON settings object"""
@@ -1309,36 +1477,6 @@ type Mutation {
     """ID of the users global environment"""
     id: ID!
   ): UserEnvironment! @isLogin
-
-  """Adds a new REST/GQL request to user history"""
-  createUserHistory(
-    """JSON string of the request data"""
-    reqData: String!
-
-    """JSON string of the response metadata"""
-    resMetadata: String!
-
-    """Request type, REST or GQL"""
-    reqType: ReqType!
-  ): UserHistory! @isLogin
-
-  """Stars/Unstars a REST/GQL request in user history"""
-  toggleHistoryStarStatus(
-    """ID of User History"""
-    id: ID!
-  ): UserHistory! @isLogin
-
-  """Removes a REST/GQL request from user history"""
-  removeRequestFromHistory(
-    """ID of User History"""
-    id: ID!
-  ): UserHistory! @isLogin
-
-  """Deletes all REST/GQL history for a user based on Request type"""
-  deleteAllUserHistory(
-    """Request type, REST or GQL"""
-    reqType: ReqType!
-  ): UserHistoryDeletedManyData! @isLogin
 
   """Create a new user REST request"""
   createRESTUserRequest(
@@ -1513,6 +1651,51 @@ type Mutation {
     """JSON string representing the collection data"""
     data: String
   ): UserCollection! @isLogin
+
+  """Duplicate a User Collection"""
+  duplicateUserCollection(
+    """ID of the collection"""
+    collectionID: String!
+
+    """Type of UserCollection"""
+    reqType: ReqType!
+  ): Boolean! @isLogin
+
+  """Create a new infra token"""
+  createInfraToken(
+    """Label of the token"""
+    label: String!
+
+    """Number of days the token is valid for"""
+    expiryInDays: Int
+  ): CreateInfraTokenResponse! @isAdmin
+
+  """Revoke an infra token"""
+  revokeInfraToken(
+    """ID of the infra token"""
+    id: ID!
+  ): Boolean! @isAdmin
+
+  """Sort user collections"""
+  sortUserCollections(
+    """ID of the parent collection"""
+    parentCollectionID: ID
+
+    """Sorting option"""
+    sortOption: SortOptions!
+  ): Boolean! @isLogin
+
+  """Sort team collections"""
+  sortTeamCollections(
+    """ID of the team"""
+    teamID: ID!
+
+    """ID of the parent collection"""
+    parentCollectionID: ID
+
+    """Sorting option"""
+    sortOption: SortOptions!
+  ): Boolean! @isLogin
 }
 
 enum SessionType {
@@ -1528,6 +1711,11 @@ input InfraConfigArgs {
   value: String!
 }
 
+enum ServiceStatus {
+  ENABLE
+  DISABLE
+}
+
 input EnableAndDisableSSOArgs {
   """Auth Provider"""
   provider: AuthProvider!
@@ -1541,11 +1729,6 @@ enum AuthProvider {
   GITHUB
   MICROSOFT
   EMAIL
-}
-
-enum ServiceStatus {
-  ENABLE
-  DISABLE
 }
 
 input CreateTeamRequestInput {
@@ -1573,6 +1756,12 @@ type Subscription {
 
   """Listen for user deletion"""
   userDeleted: User!
+
+  """Subscription for infra config update"""
+  infraConfigUpdate(
+    """Infra config key"""
+    configName: InfraConfigEnum!
+  ): String!
 
   """Listen for User Invitation"""
   userInvited: InvitedUser!
@@ -1704,6 +1893,21 @@ type Subscription {
   """Listen for shortcode deletion"""
   myShortcodesRevoked: Shortcode!
 
+  """Listen for User History Creation"""
+  userHistoryCreated: UserHistory!
+
+  """Listen for User History update"""
+  userHistoryUpdated: UserHistory!
+
+  """Listen for User History deletion"""
+  userHistoryDeleted: UserHistory!
+
+  """Listen for User History deleted many"""
+  userHistoryDeletedMany: UserHistoryDeletedManyData!
+
+  """Listen for All User History deleted"""
+  userHistoryAllDeleted: Boolean!
+
   """Listen for user setting creation"""
   userSettingsCreated: UserSettings!
 
@@ -1721,18 +1925,6 @@ type Subscription {
 
   """Listen for User Environment DeleteMany"""
   userEnvironmentDeleteMany: Int!
-
-  """Listen for User History Creation"""
-  userHistoryCreated: UserHistory!
-
-  """Listen for User History update"""
-  userHistoryUpdated: UserHistory!
-
-  """Listen for User History deletion"""
-  userHistoryDeleted: UserHistory!
-
-  """Listen for User History deleted many"""
-  userHistoryDeletedMany: UserHistoryDeletedManyData!
 
   """Listen for User Request Creation"""
   userRequestCreated: UserRequest!
@@ -1760,4 +1952,25 @@ type Subscription {
 
   """Listen to when a User Collections position has changed"""
   userCollectionOrderUpdated: UserCollectionReorderData!
+
+  """Listen to when a User Collection has been duplicated"""
+  userCollectionDuplicated: UserCollectionDuplicatedData!
+
+  """Listen for User Root Collection Sort Events"""
+  userRootCollectionsSorted: UserCollectionSortData!
+
+  """Listen for User Child Collection Sort Events"""
+  userChildCollectionsSorted: UserCollectionSortData!
+
+  """Listen for Team Root Collection Sort Events"""
+  teamRootCollectionsSorted(
+    """ID of the team to listen to"""
+    teamID: ID!
+  ): Boolean!
+
+  """Listen for Team Child Collection Sort Events"""
+  teamChildCollectionsSorted(
+    """ID of the team to listen to"""
+    teamID: ID!
+  ): ID!
 }

@@ -12,15 +12,13 @@ const TableNameInvitedUser = "InvitedUsers"
 
 // InvitedUser mapped from table <InvitedUsers>
 type InvitedUser struct {
-	AdminUID     string     `gorm:"column:adminUid;type:text;not null" json:"adminUid"`
-	AdminEmail   string     `gorm:"column:adminEmail;type:text;not null" json:"adminEmail"`
-	InviteeEmail string     `gorm:"column:inviteeEmail;type:text;not null;uniqueIndex:InvitedUsers_inviteeEmail_key,priority:1" json:"inviteeEmail"`
-	InvitedOn    time.Time  `gorm:"column:invitedOn;type:timestamp(3) without time zone;not null;default:CURRENT_TIMESTAMP" json:"invitedOn"`
-	Admin 		 User 	   `gorm:"foreignKey:AdminUID" json:"admin"`
+	AdminUID     string    `gorm:"column:adminUid;type:text;not null" json:"adminUid"`
+	AdminEmail   string    `gorm:"column:adminEmail;type:text;not null" json:"adminEmail"`
+	InviteeEmail string    `gorm:"column:inviteeEmail;type:text;not null;uniqueIndex:InvitedUsers_inviteeEmail_key,priority:1" json:"inviteeEmail"`
+	InvitedOn    time.Time `gorm:"column:invitedOn;type:timestamp(3) with time zone;not null;default:CURRENT_TIMESTAMP" json:"invitedOn"`
 }
 
 // TableName InvitedUser's table name
 func (*InvitedUser) TableName() string {
 	return TableNameInvitedUser
 }
-

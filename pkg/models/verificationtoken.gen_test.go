@@ -18,14 +18,14 @@ import (
 
 func init() {
 	InitializeDB()
-	err := db.AutoMigrate(&model.VerificationToken{})
+	err := _gen_test_db.AutoMigrate(&model.VerificationToken{})
 	if err != nil {
 		fmt.Printf("Error: AutoMigrate(&model.VerificationToken{}) fail: %s", err)
 	}
 }
 
 func Test_verificationTokenQuery(t *testing.T) {
-	verificationToken := newVerificationToken(db)
+	verificationToken := newVerificationToken(_gen_test_db)
 	verificationToken = *verificationToken.As(verificationToken.TableName())
 	_do := verificationToken.WithContext(context.Background()).Debug()
 

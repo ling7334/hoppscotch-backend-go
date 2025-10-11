@@ -15,7 +15,7 @@ type TeamEnvironment struct {
 	ID        string `gorm:"column:id;type:text;primaryKey" json:"id"`
 	TeamID    string `gorm:"column:teamID;type:text;not null" json:"teamID"`
 	Name      string `gorm:"column:name;type:text;not null" json:"name"`
-	Variables string  `gorm:"column:variables;type:jsonb;not null" json:"variables"`
+	Variables string `gorm:"column:variables;type:jsonb;not null" json:"variables"`
 	Team      Team   `gorm:"foreignKey:TeamID" json:"team"`
 }
 
@@ -28,7 +28,7 @@ func (e *TeamEnvironment) GetTeamID() string {
 	return e.TeamID
 }
 
-func (e *TeamEnvironment) Can(db *gorm.DB, uid string, role TeamMemberRole) bool {
+func (e *TeamEnvironment) Can(db *gorm.DB, uid string, role TeamAccessRole) bool {
 	member := &TeamMember{}
 	if db.First(member, `"userUid"=? AND "teamID"=?`, uid, e.TeamID).Error != nil {
 		switch role {

@@ -15,17 +15,18 @@ func main() {
 			return "ReqType"
 		},
 
-		"TeamMemberRole": func(columnType gorm.ColumnType) (dataType string) {
+		"TeamAccessRole": func(columnType gorm.ColumnType) (dataType string) {
 			if n, ok := columnType.Nullable(); ok && n {
-				return "*TeamMemberRole"
+				return "*TeamAccessRole"
 			}
-			return "TeamMemberRole"
+			return "TeamAccessRole"
 		},
+
 		"jsonb": func(columnType gorm.ColumnType) (dataType string) {
 			if n, ok := columnType.Nullable(); ok && n {
-				return "*JSONB"
+				return "*string"
 			}
-			return "JSONB"
+			return "string"
 		},
 	}
 
@@ -42,7 +43,7 @@ func main() {
 		FieldWithTypeTag: true,
 		// if you need unit tests for query code, set WithUnitTest true
 		WithUnitTest: true,
-		OutPath:      "../models",
+		OutPath:      "pkg/models",
 		Mode:         gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface, // generate mode
 	})
 	g.WithDataTypeMap(dataMap)

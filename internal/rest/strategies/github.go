@@ -3,10 +3,10 @@ package strategies
 import (
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
 
-	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
 )
 
@@ -81,7 +81,7 @@ func getGithubUserInfo(token string) (GithubUserInfo, error) {
 	if err != nil {
 		return GithubUserInfo{}, err
 	}
-	log.Info().Msgf("userinfo: %s", bytes)
+	slog.Info("Github userinfo", "userinfo", bytes)
 	var userInfo GithubUserInfo
 	err = json.Unmarshal(bytes, &userInfo)
 	return userInfo, err
@@ -103,7 +103,7 @@ func getGithubEmails(token string) ([]GithubEmails, error) {
 	if err != nil {
 		return []GithubEmails{}, err
 	}
-	log.Info().Msgf("userinfo: %s", bytes)
+	slog.Info("Github userinfo", "userinfo", bytes)
 	var emails []GithubEmails
 	err = json.Unmarshal(bytes, &emails)
 	return emails, err

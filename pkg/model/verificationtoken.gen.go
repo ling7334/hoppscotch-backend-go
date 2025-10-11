@@ -13,10 +13,10 @@ const TableNameVerificationToken = "VerificationToken"
 // VerificationToken mapped from table <VerificationToken>
 type VerificationToken struct {
 	DeviceIdentifier string    `gorm:"column:deviceIdentifier;type:text;not null;uniqueIndex:VerificationToken_deviceIdentifier_token_key,priority:1" json:"deviceIdentifier"`
-	Token            string    `gorm:"column:token;type:text;not null;uniqueIndex:VerificationToken_token_key,priority:1;uniqueIndex:VerificationToken_deviceIdentifier_token_key,priority:2" json:"token"`
+	Token            string    `gorm:"column:token;type:text;not null;uniqueIndex:VerificationToken_deviceIdentifier_token_key,priority:2;uniqueIndex:VerificationToken_token_key,priority:1" json:"token"`
 	UserUID          string    `gorm:"column:userUid;type:text;not null" json:"userUid"`
-	ExpiresOn        time.Time `gorm:"column:expiresOn;type:timestamp(3) without time zone;not null" json:"expiresOn"`
-	User 			 User 	   `gorm:"foreignKey:UserUID" json:"user"`
+	ExpiresOn        time.Time `gorm:"column:expiresOn;type:timestamp(3) with time zone;not null" json:"expiresOn"`
+	User             User      `gorm:"foreignKey:UserUID" json:"user"`
 }
 
 // TableName VerificationToken's table name

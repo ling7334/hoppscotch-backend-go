@@ -14,12 +14,12 @@ const TableNameUserHistory = "UserHistory"
 type UserHistory struct {
 	ID               string     `gorm:"column:id;type:text;primaryKey" json:"id"`
 	UserUID          string     `gorm:"column:userUid;type:text;not null" json:"userUid"`
-	ReqType          ReqType    `gorm:"column:reqType;type:req_type;not null" json:"reqType"`
-	Request          string      `gorm:"column:request;type:jsonb;not null" json:"request"`
-	ResponseMetadata string      `gorm:"column:responseMetadata;type:jsonb;not null" json:"responseMetadata"`
+	ReqType          ReqType    `gorm:"column:reqType;type:"ReqType";not null" json:"reqType"`
+	Request          string     `gorm:"column:request;type:jsonb;not null" json:"request"`
+	ResponseMetadata string     `gorm:"column:responseMetadata;type:jsonb;not null" json:"responseMetadata"`
 	IsStarred        bool       `gorm:"column:isStarred;type:boolean;not null" json:"isStarred"`
-	ExecutedOn       time.Time  `gorm:"column:executedOn;type:timestamp(3) without time zone;not null;default:CURRENT_TIMESTAMP" json:"executedOn"`
-	User	  		 User 	   	`gorm:"foreignKey:UserUID" json:"user"`
+	ExecutedOn       *time.Time `gorm:"column:executedOn;type:timestamp(3) with time zone;not null;default:CURRENT_TIMESTAMP" json:"executedOn"`
+	User             User       `gorm:"foreignKey:UserUID" json:"user"`
 }
 
 // TableName UserHistory's table name

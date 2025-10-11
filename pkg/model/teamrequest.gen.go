@@ -6,6 +6,7 @@ package model
 
 import (
 	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -13,15 +14,15 @@ const TableNameTeamRequest = "TeamRequest"
 
 // TeamRequest mapped from table <TeamRequest>
 type TeamRequest struct {
-	ID           string     	`gorm:"column:id;type:text;primaryKey" json:"id"`
-	CollectionID string     	`gorm:"column:collectionID;type:text;not null" json:"collectionID"`
-	TeamID       string     	`gorm:"column:teamID;type:text;not null" json:"teamID"`
-	Title        string     	`gorm:"column:title;type:text;not null" json:"title"`
+	ID           string         `gorm:"column:id;type:text;primaryKey" json:"id"`
+	CollectionID string         `gorm:"column:collectionID;type:text;not null" json:"collectionID"`
+	TeamID       string         `gorm:"column:teamID;type:text;not null" json:"teamID"`
+	Title        string         `gorm:"column:title;type:text;not null" json:"title"`
 	Request      ReqDetail      `gorm:"column:request;type:jsonb;not null" json:"request"`
-	OrderIndex   int32      	`gorm:"column:orderIndex;type:integer;not null" json:"orderIndex"`
-	CreatedOn    time.Time  	`gorm:"column:createdOn;type:timestamp(3) without time zone;not null;default:CURRENT_TIMESTAMP" json:"createdOn"`
-	UpdatedOn    time.Time  	`gorm:"column:updatedOn;type:timestamp(3) without time zone;not null;autoUpdateTime" json:"updatedOn"`
-	Team         Team      		`gorm:"foreignKey:TeamID" json:"team"`
+	OrderIndex   int32          `gorm:"column:orderIndex;type:integer;not null" json:"orderIndex"`
+	CreatedOn    time.Time      `gorm:"column:createdOn;type:timestamp(3) without time zone;not null;default:CURRENT_TIMESTAMP" json:"createdOn"`
+	UpdatedOn    time.Time      `gorm:"column:updatedOn;type:timestamp(3) without time zone;not null;autoUpdateTime" json:"updatedOn"`
+	Team         Team           `gorm:"foreignKey:TeamID" json:"team"`
 	Collection   TeamCollection `gorm:"foreignKey:CollectionID" json:"collection"`
 }
 
@@ -34,7 +35,7 @@ func (r *TeamRequest) GetTeamID() string {
 	return r.TeamID
 }
 
-func (r *TeamRequest) Can(db *gorm.DB, uid string, role TeamMemberRole) bool {
+func (r *TeamRequest) Can(db *gorm.DB, uid string, role TeamAccessRole) bool {
 	member := &TeamMember{}
 	if db.First(member, `"userUid"=? AND "teamID"=?`, uid, r.TeamID).Error != nil {
 		switch role {

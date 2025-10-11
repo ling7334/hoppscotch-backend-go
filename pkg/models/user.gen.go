@@ -6,6 +6,7 @@ package models
 
 import (
 	"context"
+	"database/sql"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -36,6 +37,8 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.CurrentRESTSession = field.NewField(tableName, "currentRESTSession")
 	_user.CurrentGQLSession = field.NewField(tableName, "currentGQLSession")
 	_user.CreatedOn = field.NewTime(tableName, "createdOn")
+	_user.LastLoggedOn = field.NewTime(tableName, "lastLoggedOn")
+	_user.LastActiveOn = field.NewTime(tableName, "lastActiveOn")
 
 	_user.fillFieldMap()
 
@@ -55,6 +58,8 @@ type user struct {
 	CurrentRESTSession field.Field
 	CurrentGQLSession  field.Field
 	CreatedOn          field.Time
+	LastLoggedOn       field.Time
+	LastActiveOn       field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -80,6 +85,8 @@ func (u *user) updateTableName(table string) *user {
 	u.CurrentRESTSession = field.NewField(table, "currentRESTSession")
 	u.CurrentGQLSession = field.NewField(table, "currentGQLSession")
 	u.CreatedOn = field.NewTime(table, "createdOn")
+	u.LastLoggedOn = field.NewTime(table, "lastLoggedOn")
+	u.LastActiveOn = field.NewTime(table, "lastActiveOn")
 
 	u.fillFieldMap()
 
@@ -96,7 +103,7 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 9)
+	u.fieldMap = make(map[string]field.Expr, 11)
 	u.fieldMap["uid"] = u.UID
 	u.fieldMap["displayName"] = u.DisplayName
 	u.fieldMap["email"] = u.Email
@@ -106,6 +113,8 @@ func (u *user) fillFieldMap() {
 	u.fieldMap["currentRESTSession"] = u.CurrentRESTSession
 	u.fieldMap["currentGQLSession"] = u.CurrentGQLSession
 	u.fieldMap["createdOn"] = u.CreatedOn
+	u.fieldMap["lastLoggedOn"] = u.LastLoggedOn
+	u.fieldMap["lastActiveOn"] = u.LastActiveOn
 }
 
 func (u user) clone(db *gorm.DB) user {
@@ -175,6 +184,8 @@ type IUserDo interface {
 	FirstOrCreate() (*model.User, error)
 	FindByPage(offset int, limit int) (result []*model.User, count int64, err error)
 	ScanByPage(result interface{}, offset int, limit int) (count int64, err error)
+	Rows() (*sql.Rows, error)
+	Row() *sql.Row
 	Scan(result interface{}) (err error)
 	Returning(value interface{}, columns ...string) IUserDo
 	UnderlyingDB() *gorm.DB

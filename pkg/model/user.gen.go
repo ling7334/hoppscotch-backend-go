@@ -12,24 +12,26 @@ const TableNameUser = "User"
 
 // User mapped from table <User>
 type User struct {
-	UID                string     			`gorm:"column:uid;type:text;primaryKey" json:"uid"`
-	DisplayName        *string    			`gorm:"column:displayName;type:text" json:"displayName"`
-	Email              *string    			`gorm:"column:email;type:text;uniqueIndex:User_email_key,priority:1" json:"email"`
-	PhotoURL           *string    			`gorm:"column:photoURL;type:text" json:"photoURL"`
-	IsAdmin            bool       			`gorm:"column:isAdmin;type:boolean;not null" json:"isAdmin"`
-	RefreshToken       *string    			`gorm:"column:refreshToken;type:text" json:"refreshToken"`
-	CurrentRESTSession *string     			`gorm:"column:currentRESTSession;type:jsonb" json:"currentRESTSession"`
-	CurrentGQLSession  *string     			`gorm:"column:currentGQLSession;type:jsonb" json:"currentGQLSession"`
-	CreatedOn          time.Time  			`gorm:"column:createdOn;type:timestamp(3) without time zone;not null;default:CURRENT_TIMESTAMP" json:"createdOn"`
-	Accounts           []Account   			`gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"account"`
-	Collections		   []UserCollection 	`gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"collection"`
-	Environments 	   []UserEnvironment 	`gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"environment"`
-	Requests		   []UserRequest 		`gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"request"`
-	Histories		   []UserHistory 		`gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"history"`
-	Settings		   *UserSetting 		`gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"setting"`
-	Invitations 	   []InvitedUser 		`gorm:"foreignKey:AdminUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"invitation"`
-	VerificationTokens []VerificationToken  `gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"verificationToken"`
-	Members  		   []TeamMember 		`gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"member"`
+	UID                string              `gorm:"column:uid;type:text;primaryKey" json:"uid"`
+	DisplayName        *string             `gorm:"column:displayName;type:text" json:"displayName"`
+	Email              *string             `gorm:"column:email;type:text;uniqueIndex:User_email_key,priority:1" json:"email"`
+	PhotoURL           *string             `gorm:"column:photoURL;type:text" json:"photoURL"`
+	IsAdmin            bool                `gorm:"column:isAdmin;type:boolean;not null" json:"isAdmin"`
+	RefreshToken       *string             `gorm:"column:refreshToken;type:text" json:"refreshToken"`
+	CurrentRESTSession *string             `gorm:"column:currentRESTSession;type:jsonb" json:"currentRESTSession"`
+	CurrentGQLSession  *string             `gorm:"column:currentGQLSession;type:jsonb" json:"currentGQLSession"`
+	CreatedOn          time.Time           `gorm:"column:createdOn;type:timestamp(3) with time zone;not null;default:CURRENT_TIMESTAMP" json:"createdOn"`
+	LastLoggedOn       *time.Time          `gorm:"column:lastLoggedOn;type:timestamp(3) with time zone" json:"lastLoggedOn"`
+	LastActiveOn       *time.Time          `gorm:"column:lastActiveOn;type:timestamp(3) with time zone" json:"lastActiveOn"`
+	Accounts           []Account           `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"account"`
+	Collections        []UserCollection    `gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"collection"`
+	Environments       []UserEnvironment   `gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"environment"`
+	Requests           []UserRequest       `gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"request"`
+	Histories          []UserHistory       `gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"history"`
+	Settings           *UserSetting        `gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"setting"`
+	Invitations        []InvitedUser       `gorm:"foreignKey:AdminUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"invitation"`
+	VerificationTokens []VerificationToken `gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"verificationToken"`
+	Members            []TeamMember        `gorm:"foreignKey:UserUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"member"`
 }
 
 // TableName User's table name

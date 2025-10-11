@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	st "strategies"
@@ -15,7 +16,6 @@ import (
 	"model"
 
 	jwt "github.com/golang-jwt/jwt/v5"
-	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )
@@ -45,7 +45,7 @@ func TeamServeMux(path string) *http.ServeMux {
 
 func TeamSerarch(w http.ResponseWriter, r *http.Request) {
 	teamID := r.PathValue("teamID")
-	log.Info().Str("teamID", teamID).Msg("searching in team")
+	slog.Info("searching in team", "teamID", teamID)
 	vars := r.URL.Query()
 	searchQuery := vars.Get("searchQuery")
 	db := getDB(w, r)
@@ -206,7 +206,7 @@ func Verify(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	log.Info().Msgf("access_token: %s \n refresh_token: %s", authTokens.Access_token, authTokens.Refresh_token)
+	slog.Info("authTokens is verified", "access_token", authTokens.Access_token, "refresh_token", authTokens.Refresh_token)
 	authCookieHandler(w, r, authTokens)
 	w.WriteHeader(http.StatusOK)
 }

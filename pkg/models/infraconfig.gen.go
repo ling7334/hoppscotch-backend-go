@@ -6,6 +6,7 @@ package models
 
 import (
 	"context"
+	"database/sql"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -30,9 +31,10 @@ func newInfraConfig(db *gorm.DB, opts ...gen.DOOption) infraConfig {
 	_infraConfig.ID = field.NewString(tableName, "id")
 	_infraConfig.Name = field.NewString(tableName, "name")
 	_infraConfig.Value = field.NewString(tableName, "value")
-	_infraConfig.Active = field.NewBool(tableName, "active")
 	_infraConfig.CreatedOn = field.NewTime(tableName, "createdOn")
 	_infraConfig.UpdatedOn = field.NewTime(tableName, "updatedOn")
+	_infraConfig.IsEncrypted = field.NewBool(tableName, "isEncrypted")
+	_infraConfig.LastSyncedEnvFileValue = field.NewString(tableName, "lastSyncedEnvFileValue")
 
 	_infraConfig.fillFieldMap()
 
@@ -42,13 +44,14 @@ func newInfraConfig(db *gorm.DB, opts ...gen.DOOption) infraConfig {
 type infraConfig struct {
 	infraConfigDo
 
-	ALL       field.Asterisk
-	ID        field.String
-	Name      field.String
-	Value     field.String
-	Active    field.Bool
-	CreatedOn field.Time
-	UpdatedOn field.Time
+	ALL                    field.Asterisk
+	ID                     field.String
+	Name                   field.String
+	Value                  field.String
+	CreatedOn              field.Time
+	UpdatedOn              field.Time
+	IsEncrypted            field.Bool
+	LastSyncedEnvFileValue field.String
 
 	fieldMap map[string]field.Expr
 }
@@ -68,9 +71,10 @@ func (i *infraConfig) updateTableName(table string) *infraConfig {
 	i.ID = field.NewString(table, "id")
 	i.Name = field.NewString(table, "name")
 	i.Value = field.NewString(table, "value")
-	i.Active = field.NewBool(table, "active")
 	i.CreatedOn = field.NewTime(table, "createdOn")
 	i.UpdatedOn = field.NewTime(table, "updatedOn")
+	i.IsEncrypted = field.NewBool(table, "isEncrypted")
+	i.LastSyncedEnvFileValue = field.NewString(table, "lastSyncedEnvFileValue")
 
 	i.fillFieldMap()
 
@@ -87,13 +91,14 @@ func (i *infraConfig) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (i *infraConfig) fillFieldMap() {
-	i.fieldMap = make(map[string]field.Expr, 6)
+	i.fieldMap = make(map[string]field.Expr, 7)
 	i.fieldMap["id"] = i.ID
 	i.fieldMap["name"] = i.Name
 	i.fieldMap["value"] = i.Value
-	i.fieldMap["active"] = i.Active
 	i.fieldMap["createdOn"] = i.CreatedOn
 	i.fieldMap["updatedOn"] = i.UpdatedOn
+	i.fieldMap["isEncrypted"] = i.IsEncrypted
+	i.fieldMap["lastSyncedEnvFileValue"] = i.LastSyncedEnvFileValue
 }
 
 func (i infraConfig) clone(db *gorm.DB) infraConfig {
@@ -163,6 +168,8 @@ type IInfraConfigDo interface {
 	FirstOrCreate() (*model.InfraConfig, error)
 	FindByPage(offset int, limit int) (result []*model.InfraConfig, count int64, err error)
 	ScanByPage(result interface{}, offset int, limit int) (count int64, err error)
+	Rows() (*sql.Rows, error)
+	Row() *sql.Row
 	Scan(result interface{}) (err error)
 	Returning(value interface{}, columns ...string) IInfraConfigDo
 	UnderlyingDB() *gorm.DB

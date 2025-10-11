@@ -6,6 +6,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/lucsky/cuid"
 	"gorm.io/gorm"
 )
 
@@ -13,17 +15,17 @@ const TableNameUserCollection = "UserCollection"
 
 // UserCollection mapped from table <UserCollection>
 type UserCollection struct {
-	ID         string     		`gorm:"column:id;type:text;primaryKey" json:"id"`
-	ParentID   *string    		`gorm:"column:parentID;type:text" json:"parentID"`
-	UserUID    string     		`gorm:"column:userUid;type:text;not null" json:"userUid"`
-	Title      string     		`gorm:"column:title;type:text;not null" json:"title"`
-	OrderIndex int32      		`gorm:"column:orderIndex;type:integer;not null" json:"orderIndex"`
-	Type       ReqType    		`gorm:"column:type;type:req_type;not null" json:"type"`
-	CreatedOn  time.Time  		`gorm:"column:createdOn;type:timestamp(3) without time zone;not null;default:CURRENT_TIMESTAMP" json:"createdOn"`
-	UpdatedOn  time.Time  		`gorm:"column:updatedOn;type:timestamp(3) without time zone;not null;autoUpdateTime" json:"updatedOn"`
-	Data       *string     		`gorm:"column:data;type:jsonb" json:"data"`
-	Parent     *UserCollection	`gorm:"foreignKey:ParentID" json:"parent"`
-	User	   User         	`gorm:"foreignKey:UserUID" json:"user"`
+	ID         string           `gorm:"column:id;type:text;primaryKey" json:"id"`
+	ParentID   *string          `gorm:"column:parentID;type:text" json:"parentID"`
+	UserUID    string           `gorm:"column:userUid;type:text;not null" json:"userUid"`
+	Title      string           `gorm:"column:title;type:text;not null" json:"title"`
+	OrderIndex int32            `gorm:"column:orderIndex;type:integer;not null" json:"orderIndex"`
+	Type       ReqType          `gorm:"column:type;type:req_type;not null" json:"type"`
+	CreatedOn  time.Time        `gorm:"column:createdOn;type:timestamp(3) without time zone;not null;default:CURRENT_TIMESTAMP" json:"createdOn"`
+	UpdatedOn  time.Time        `gorm:"column:updatedOn;type:timestamp(3) without time zone;not null;autoUpdateTime" json:"updatedOn"`
+	Data       *string          `gorm:"column:data;type:jsonb" json:"data"`
+	Parent     *UserCollection  `gorm:"foreignKey:ParentID" json:"parent"`
+	User       User             `gorm:"foreignKey:UserUID" json:"user"`
 	Children   []UserCollection `gorm:"foreignKey:ParentID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"children"`
 	Requests   []UserRequest    `gorm:"foreignKey:CollectionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"request"`
 }
@@ -43,4 +45,27 @@ func (*UserCollection) ParentColName() string {
 
 func (c *UserCollection) Move(db *gorm.DB, next *string) error {
 	panic("implement me")
+}
+
+func (r *UserCollection) Duplicate(tx *gorm.DB) (err error) {
+	r.Title = r.Title + " Copy"
+	r.ID = cuid.New()
+	r.CreatedOn = time.Now()
+	r.UpdatedOn = time.Now()
+	if err := tx.Create(r).Error; err != nil {
+		return err
+	}
+	for i := range r.Children {
+		r.Children[i].ParentID = &r.ID
+		if err := r.Children[i].Duplicate(tx); err != nil {
+			return err
+		}
+	}
+	for i := range r.Requests {
+		r.Requests[i].CollectionID = r.ID
+		if err := r.Requests[i].Duplicate(tx); err != nil {
+			return err
+		}
+	}
+	return nil
 }

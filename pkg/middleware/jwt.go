@@ -4,6 +4,7 @@ import (
 	"context"
 	"exception"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -11,7 +12,6 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
-	"github.com/rs/zerolog/log"
 )
 
 const defaultSecret = "secret123"
@@ -76,12 +76,12 @@ func JwtMiddleware(next http.Handler) http.Handler {
 		}()
 		at, err := r.Cookie("access_token")
 		if err != nil || at == nil {
-			log.Error().Err(err).Msg("access_token not found")
+			slog.Error("access_token not found", "error", err)
 			return
 		}
 		rt, err := r.Cookie("refresh_token")
 		if err != nil || rt == nil {
-			log.Error().Err(err).Msg("refresh_token not found")
+			slog.Error("refresh_token not found", "error", err)
 			return
 		}
 		var sidStr string
@@ -113,12 +113,12 @@ func JwtMiddleware(next http.Handler) http.Handler {
 				if err != nil {
 					switch err {
 					case jwt.ErrTokenExpired:
-						log.Error().Err(err).Msg("refresh token expired")
+						slog.Error("refresh token expired", "error", err)
 						ctx := context.WithValue(ctx, ContextKey("error"), exception.ErrTokenExpired)
 						r = r.WithContext(ctx)
 						return
 					default:
-						log.Error().Err(err).Msg("refresh token parse failed")
+						slog.Error("refresh token parse failed", "error", err)
 						ctx := context.WithValue(ctx, ContextKey("error"), exception.ErrInvalidRefreshToken)
 						r = r.WithContext(ctx)
 						return
@@ -128,7 +128,7 @@ func JwtMiddleware(next http.Handler) http.Handler {
 					// all good
 					uid, err := claims.GetSubject()
 					if err != nil {
-						log.Error().Err(err).Msg("get uid failed")
+						slog.Error("get uid failed", "error", err)
 						ctx = context.WithValue(ctx, ContextKey("error"), err)
 						r = r.WithContext(ctx)
 						return
@@ -136,7 +136,7 @@ func JwtMiddleware(next http.Handler) http.Handler {
 					// refresh token is valid, get new access token
 					token, err := NewToken(uid, true)
 					if err != nil {
-						log.Error().Err(err).Msg("refresh generate token failed")
+						slog.Error("refresh generate token failed", "error", err)
 						ctx = context.WithValue(ctx, ContextKey("error"), err)
 						r = r.WithContext(ctx)
 						return
@@ -157,10 +157,10 @@ func JwtMiddleware(next http.Handler) http.Handler {
 			// all good
 			uid, err := claims.GetSubject()
 			if err != nil {
-				log.Error().Err(err).Msg("get uid failed")
+				slog.Error("get uid failed", "error", err)
 				ctx = context.WithValue(ctx, ContextKey("error"), err)
 			} else {
-				log.Debug().Msgf("uid: %v", uid)
+				slog.Debug("user", "uid", uid)
 				ctx = context.WithValue(ctx, ContextKey("session"), Session{
 					Uid: uid,
 					Sid: sidStr,
@@ -170,7 +170,7 @@ func JwtMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		// access token parse failed
-		log.Error().Err(err).Msgf("invaild access token")
+		slog.Error("invaild access token", "error", err)
 		ctx = context.WithValue(ctx, ContextKey("error"), exception.ErrInvalidAccessToken)
 		r = r.WithContext(ctx)
 	})

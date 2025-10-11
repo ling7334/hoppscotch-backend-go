@@ -18,14 +18,14 @@ import (
 
 func init() {
 	InitializeDB()
-	err := db.AutoMigrate(&model.Shortcode{})
+	err := _gen_test_db.AutoMigrate(&model.Shortcode{})
 	if err != nil {
 		fmt.Printf("Error: AutoMigrate(&model.Shortcode{}) fail: %s", err)
 	}
 }
 
 func Test_shortcodeQuery(t *testing.T) {
-	shortcode := newShortcode(db)
+	shortcode := newShortcode(_gen_test_db)
 	shortcode = *shortcode.As(shortcode.TableName())
 	_do := shortcode.WithContext(context.Background()).Debug()
 

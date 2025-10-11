@@ -16,9 +16,9 @@ type TeamInvitation struct {
 	TeamID       string         `gorm:"column:teamID;type:text;not null;uniqueIndex:TeamInvitation_teamID_inviteeEmail_key,priority:1;index:TeamInvitation_teamID_idx,priority:1" json:"teamID"`
 	CreatorUID   string         `gorm:"column:creatorUid;type:text;not null" json:"creatorUid"`
 	InviteeEmail string         `gorm:"column:inviteeEmail;type:text;not null;uniqueIndex:TeamInvitation_teamID_inviteeEmail_key,priority:2" json:"inviteeEmail"`
-	InviteeRole  TeamMemberRole `gorm:"column:inviteeRole;type:team_member_role;not null" json:"inviteeRole"`
-	Team       	 Team   		`gorm:"foreignKey:TeamID" json:"team"`
-	Creator    	 User 			`gorm:"foreignKey:CreatorUID" json:"creator"`
+	InviteeRole  TeamAccessRole `gorm:"column:inviteeRole;type:team_member_role;not null" json:"inviteeRole"`
+	Team         Team           `gorm:"foreignKey:TeamID" json:"team"`
+	Creator      User           `gorm:"foreignKey:CreatorUID" json:"creator"`
 }
 
 // TableName TeamInvitation's table name
@@ -30,8 +30,7 @@ func (i *TeamInvitation) GetTeamID() string {
 	return i.TeamID
 }
 
-
-func (i *TeamInvitation) Can(db *gorm.DB, uid string, role TeamMemberRole) bool {
+func (i *TeamInvitation) Can(db *gorm.DB, uid string, role TeamAccessRole) bool {
 	member := &TeamMember{}
 	if db.First(member, `"userUid"=? AND "teamID"=?`, uid, i.TeamID).Error != nil {
 		switch role {

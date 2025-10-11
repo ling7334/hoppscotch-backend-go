@@ -37,21 +37,21 @@ VIEWER: can only view team assest
 
 EDITOR: can read and write team assest
 */
-// CREATE TYPE "TeamMemberRole" AS ENUM ('OWNER','VIEWER','EDITOR');
-type TeamMemberRole string
+// CREATE TYPE "TeamAccessRole" AS ENUM ('OWNER','VIEWER','EDITOR');
+type TeamAccessRole string
 
 const (
-	OWNER  TeamMemberRole = "OWNER"
-	VIEWER TeamMemberRole = "VIEWER"
-	EDITOR TeamMemberRole = "EDITOR"
+	OWNER  TeamAccessRole = "OWNER"
+	VIEWER TeamAccessRole = "VIEWER"
+	EDITOR TeamAccessRole = "EDITOR"
 )
 
-func (tmr *TeamMemberRole) Scan(value interface{}) error {
-	*tmr = TeamMemberRole(value.(string))
+func (tmr *TeamAccessRole) Scan(value interface{}) error {
+	*tmr = TeamAccessRole(value.(string))
 	return nil
 }
 
-func (tmr TeamMemberRole) Value() (driver.Value, error) {
+func (tmr TeamAccessRole) Value() (driver.Value, error) {
 	return string(tmr), nil
 }
 
@@ -121,5 +121,5 @@ type Orderable interface {
 // TeamResource table has field which link to user
 type TeamResource interface {
 	GetTeamID() string
-	Can(*gorm.DB, string, TeamMemberRole) bool
+	Can(*gorm.DB, string, TeamAccessRole) bool
 }

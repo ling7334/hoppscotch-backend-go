@@ -6,6 +6,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/lucsky/cuid"
 	"gorm.io/gorm"
 )
 
@@ -13,16 +15,16 @@ const TableNameUserRequest = "UserRequest"
 
 // UserRequest mapped from table <UserRequest>
 type UserRequest struct {
-	ID           string     	`gorm:"column:id;type:text;primaryKey" json:"id"`
-	CollectionID string     	`gorm:"column:collectionID;type:text;not null" json:"collectionID"`
-	UserUID      string     	`gorm:"column:userUid;type:text;not null" json:"userUid"`
-	Title        string     	`gorm:"column:title;type:text;not null" json:"title"`
+	ID           string         `gorm:"column:id;type:text;primaryKey" json:"id"`
+	CollectionID string         `gorm:"column:collectionID;type:text;not null" json:"collectionID"`
+	UserUID      string         `gorm:"column:userUid;type:text;not null" json:"userUid"`
+	Title        string         `gorm:"column:title;type:text;not null" json:"title"`
 	Request      ReqDetail      `gorm:"column:request;type:jsonb;not null" json:"request"`
-	Type         ReqType    	`gorm:"column:type;type:req_type;not null" json:"type"`
-	OrderIndex   int32      	`gorm:"column:orderIndex;type:integer;not null" json:"orderIndex"`
-	CreatedOn    time.Time  	`gorm:"column:createdOn;type:timestamp(3) without time zone;not null;default:CURRENT_TIMESTAMP" json:"createdOn"`
-	UpdatedOn    time.Time  	`gorm:"column:updatedOn;type:timestamp(3) without time zone;not null;autoUpdateTime" json:"updatedOn"`
-	User	  	 User 			`gorm:"foreignKey:UserUID" json:"user"`
+	Type         ReqType        `gorm:"column:type;type:"ReqType";not null" json:"type"`
+	OrderIndex   int32          `gorm:"column:orderIndex;type:integer;not null" json:"orderIndex"`
+	CreatedOn    time.Time      `gorm:"column:createdOn;type:timestamp(3) with time zone;not null;default:CURRENT_TIMESTAMP" json:"createdOn"`
+	UpdatedOn    time.Time      `gorm:"column:updatedOn;type:timestamp(3) with time zone;not null;autoUpdateTime" json:"updatedOn"`
+	User         User           `gorm:"foreignKey:UserUID" json:"user"`
 	Collection   UserCollection `gorm:"foreignKey:CollectionID" json:"collection"`
 }
 
@@ -41,4 +43,12 @@ func (*UserRequest) ParentColName() string {
 
 func (r *UserRequest) Move(db *gorm.DB, next *string) error {
 	panic("implement me")
+}
+
+func (r *UserRequest) Duplicate(tx *gorm.DB) (err error) {
+	r.Title = r.Title + " Copy"
+	r.ID = cuid.New()
+	r.CreatedOn = time.Now()
+	r.UpdatedOn = time.Now()
+	return tx.Create(r).Error
 }

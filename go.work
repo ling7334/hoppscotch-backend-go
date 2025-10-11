@@ -1,6 +1,4 @@
-go 1.22
-
-toolchain go1.22.1
+go 1.25.1
 
 use (
 	./cmd/dumpper
@@ -17,4 +15,5 @@ use (
 	./pkg/middleware
 	./pkg/model
 	./pkg/models
+	./pkg/session
 )

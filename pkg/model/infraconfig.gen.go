@@ -12,12 +12,13 @@ const TableNameInfraConfig = "InfraConfig"
 
 // InfraConfig mapped from table <InfraConfig>
 type InfraConfig struct {
-	ID        string     `gorm:"column:id;type:text;primaryKey" json:"id"`
-	Name      string     `gorm:"column:name;type:text;not null;uniqueIndex:InfraConfig_name_key,priority:1" json:"name"`
-	Value     *string    `gorm:"column:value;type:text" json:"value"`
-	Active    bool       `gorm:"column:active;type:boolean;not null;default:true" json:"active"`
-	CreatedOn time.Time  `gorm:"column:createdOn;type:timestamp(3) without time zone;not null;default:CURRENT_TIMESTAMP" json:"createdOn"`
-	UpdatedOn time.Time  `gorm:"column:updatedOn;type:timestamp(3) without time zone;not null;autoUpdateTime" json:"updatedOn"`
+	ID                     string    `gorm:"column:id;type:text;primaryKey" json:"id"`
+	Name                   string    `gorm:"column:name;type:text;not null;uniqueIndex:InfraConfig_name_key,priority:1" json:"name"`
+	Value                  *string   `gorm:"column:value;type:text" json:"value"`
+	CreatedOn              time.Time `gorm:"column:createdOn;type:timestamp(3) with time zone;not null;default:CURRENT_TIMESTAMP" json:"createdOn"`
+	UpdatedOn              time.Time `gorm:"column:updatedOn;type:timestamp(3) with time zone;not null;autoUpdateTime" json:"updatedOn"`
+	IsEncrypted            bool      `gorm:"column:isEncrypted;type:boolean;not null" json:"isEncrypted"`
+	LastSyncedEnvFileValue *string   `gorm:"column:lastSyncedEnvFileValue;type:text" json:"lastSyncedEnvFileValue"`
 }
 
 // TableName InfraConfig's table name

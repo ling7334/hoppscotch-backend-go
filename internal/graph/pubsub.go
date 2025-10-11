@@ -81,6 +81,7 @@ var (
 	UserHistoryUpdatedSub         *pubsub.Publisher
 	UserHistoryDeletedSub         *pubsub.Publisher
 	UserHistoryDeletedManySub     *pubsub.Publisher
+	UserHistoryAllDeletedSub      *pubsub.Publisher
 	UserRequestCreatedSub         *pubsub.Publisher
 	UserRequestUpdatedSub         *pubsub.Publisher
 	UserRequestDeletedSub         *pubsub.Publisher
@@ -90,9 +91,15 @@ var (
 	UserCollectionRemovedSub      *pubsub.Publisher
 	UserCollectionMovedSub        *pubsub.Publisher
 	UserCollectionOrderUpdatedSub *pubsub.Publisher
+	userCollectionDuplicatedSub   *pubsub.Publisher
+	UserRootCollectionsSortedSub  *pubsub.Publisher
+	UserChildCollectionsSortedSub *pubsub.Publisher
+	TeamRootCollectionsSortedSub  *pubsub.Publisher
+	TeamChildCollectionsSortedSub *pubsub.Publisher
 	MyShortcodesCreatedSub        *pubsub.Publisher
 	MyShortcodesUpdatedSub        *pubsub.Publisher
 	MyShortcodesRevokedSub        *pubsub.Publisher
+	InfraConfigUpdateSub          *pubsub.Publisher
 )
 
 func init() {
@@ -170,6 +177,7 @@ func init() {
 	UserHistoryUpdatedSub = pubsub.NewPublisher(time.Second, 10)
 	UserHistoryDeletedSub = pubsub.NewPublisher(time.Second, 10)
 	UserHistoryDeletedManySub = pubsub.NewPublisher(time.Second, 10)
+	UserHistoryAllDeletedSub = pubsub.NewPublisher(time.Second, 10)
 	UserRequestCreatedSub = pubsub.NewPublisher(time.Second, 10)
 	UserRequestUpdatedSub = pubsub.NewPublisher(time.Second, 10)
 	UserRequestDeletedSub = pubsub.NewPublisher(time.Second, 10)
@@ -179,7 +187,13 @@ func init() {
 	UserCollectionRemovedSub = pubsub.NewPublisher(time.Second, 10)
 	UserCollectionMovedSub = pubsub.NewPublisher(time.Second, 10)
 	UserCollectionOrderUpdatedSub = pubsub.NewPublisher(time.Second, 10)
+	userCollectionDuplicatedSub = pubsub.NewPublisher(time.Second, 10)
+	UserRootCollectionsSortedSub = pubsub.NewPublisher(time.Second, 10)
+	UserChildCollectionsSortedSub = pubsub.NewPublisher(time.Second, 10)
+	TeamRootCollectionsSortedSub = pubsub.NewPublisher(time.Second, 10)
+	TeamChildCollectionsSortedSub = pubsub.NewPublisher(time.Second, 10)
 	MyShortcodesCreatedSub = pubsub.NewPublisher(time.Second, 10)
 	MyShortcodesUpdatedSub = pubsub.NewPublisher(time.Second, 10)
 	MyShortcodesRevokedSub = pubsub.NewPublisher(time.Second, 10)
+	InfraConfigUpdateSub = pubsub.NewPublisher(time.Second, 10)
 }

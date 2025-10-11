@@ -2,16 +2,17 @@ package token
 
 import (
 	"context"
-	"exception"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
+	ex "exception"
+
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
-	"github.com/rs/zerolog/log"
 )
 
 const defaultSecret = "secret123"
@@ -77,16 +78,16 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		defer func() {
 			// enableCors(&w)
 			next.ServeHTTP(w, r)
-			log.Info().TimeDiff("Duration", start, time.Now()).Msgf("%s [%s] %s in %v", r.RemoteAddr, r.Method, r.URL.Path, time.Since(start))
+			slog.Info(fmt.Sprintf("%s [%s] %s in %v", r.RemoteAddr, r.Method, r.URL.Path, time.Since(start)))
 		}()
 		at, err := r.Cookie("access_token")
 		if err != nil || at == nil {
-			log.Error().Msgf("access_token not found: %v, %s", err, at)
+			slog.Error("access_token not found", "access_token", at, "error", err)
 			return
 		}
 		rt, err := r.Cookie("refresh_token")
 		if err != nil || rt == nil {
-			log.Error().Msgf("refresh_token not found: %v, %s", err, rt)
+			slog.Error("refresh_token not found", "refresh_token", rt, "error, err")
 			return
 		}
 		var sidStr string
@@ -118,13 +119,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				if err != nil {
 					switch err {
 					case jwt.ErrTokenExpired:
-						log.Error().Msgf("refresh token expired: %v", err)
-						ctx := context.WithValue(ctx, ContextKey("error"), exception.ErrTokenExpired)
+						slog.Error("refresh token expired", "error", err)
+						ctx := context.WithValue(ctx, ContextKey("error"), ex.ErrTokenExpired)
 						r = r.WithContext(ctx)
 						return
 					default:
-						log.Error().Msgf("refresh token parse failed: %v", err)
-						ctx := context.WithValue(ctx, ContextKey("error"), exception.ErrInvalidRefreshToken)
+						slog.Error("refresh token parse failed", "error", err)
+						ctx := context.WithValue(ctx, ContextKey("error"), ex.ErrInvalidRefreshToken)
 						r = r.WithContext(ctx)
 						return
 					}
@@ -133,7 +134,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 					// all good
 					uid, err := claims.GetSubject()
 					if err != nil {
-						log.Error().Msgf("get uid failed: %v", err)
+						slog.Error("get uid failed", "error", err)
 						ctx = context.WithValue(ctx, ContextKey("error"), err)
 						r = r.WithContext(ctx)
 						return
@@ -141,7 +142,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 					// refresh token is valid, get new access token
 					token, err := New(uid, true)
 					if err != nil {
-						log.Error().Msgf("refresh generate token failed: %v", err)
+						slog.Error("refresh generate token failed", "error", err)
 						ctx = context.WithValue(ctx, ContextKey("error"), err)
 						r = r.WithContext(ctx)
 						return
@@ -162,10 +163,10 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			// all good
 			uid, err := claims.GetSubject()
 			if err != nil {
-				log.Error().Msgf("get uid failed: %v", err)
+				slog.Error("get uid failed", "error", err)
 				ctx = context.WithValue(ctx, ContextKey("error"), err)
 			} else {
-				log.Info().Msgf("uid: %v", uid)
+				slog.Info("user", "uid", uid)
 				ctx = context.WithValue(ctx, ContextKey("session"), Session{
 					Uid: uid,
 					Sid: sidStr,
@@ -175,8 +176,8 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		// access token parse failed
-		log.Error().Msgf("invaild access token")
-		ctx = context.WithValue(ctx, ContextKey("error"), exception.ErrInvalidAccessToken)
+		slog.Error("invaild access token")
+		ctx = context.WithValue(ctx, ContextKey("error"), ex.ErrInvalidAccessToken)
 		r = r.WithContext(ctx)
 	})
 }
