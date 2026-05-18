@@ -7,7 +7,7 @@ require (
 	github.com/lucsky/cuid v1.2.1
 	golang.org/x/crypto v0.51.0
 	golang.org/x/oauth2 v0.31.0
-	gorm.io/gorm v1.31.0
+	gorm.io/gorm v1.31.1
 )
 
 require (
