@@ -4,7 +4,7 @@ go 1.25.1
 
 require (
 	gorm.io/driver/postgres v1.6.0
-	gorm.io/gen v0.3.27
+	gorm.io/gen v0.3.28
 	gorm.io/gorm v1.31.1
 )
 
@@ -21,6 +21,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattn/go-sqlite3 v1.14.32 // indirect
 	golang.org/x/crypto v0.52.0 // indirect
+	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3 // indirect
 	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
