@@ -3,11 +3,11 @@ module graph
 go 1.25.0
 
 require (
-	github.com/99designs/gqlgen v0.17.90
+	github.com/99designs/gqlgen v0.17.91
 	github.com/google/uuid v1.6.0
 	github.com/lucsky/cuid v1.2.1
 	github.com/moby/pubsub v1.0.0
-	github.com/vektah/gqlparser/v2 v2.5.33
+	github.com/vektah/gqlparser/v2 v2.5.34
 	golang.org/x/text v0.37.0
 	gorm.io/gorm v1.31.1
 )
