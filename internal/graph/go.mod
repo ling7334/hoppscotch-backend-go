@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/lucsky/cuid v1.2.1
 	github.com/moby/pubsub v1.0.0
-	github.com/vektah/gqlparser/v2 v2.5.33
+	github.com/vektah/gqlparser/v2 v2.5.35
 	golang.org/x/text v0.37.0
 	gorm.io/gorm v1.31.1
 )
