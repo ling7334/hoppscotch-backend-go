@@ -6,7 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.92
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
-	github.com/vektah/gqlparser/v2 v2.5.35
+	github.com/vektah/gqlparser/v2 v2.5.36
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
 )
