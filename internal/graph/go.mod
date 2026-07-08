@@ -3,7 +3,7 @@ module graph
 go 1.25.0
 
 require (
-	github.com/99designs/gqlgen v0.17.92
+	github.com/99designs/gqlgen v0.17.93
 	github.com/google/uuid v1.6.0
 	github.com/lucsky/cuid v1.2.1
 	github.com/moby/pubsub v1.0.0
